@@ -1,0 +1,21 @@
+node_modules/
+dist/
+build/
+.expo/
+web-build/
+*.tsbuildinfo
+.env
+.env.local
+coverage/
+
+# API dev data
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
+
+# Expo
+apps/mobile/expo-env.d.ts
+apps/mobile/ios/
+apps/mobile/android/
+.DS_Store
