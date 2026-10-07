@@ -107,7 +107,7 @@ export default function VerifyScreen() {
           <VRow
             icon="mail"
             title="Email"
-            subtitle={me.email ?? 'Add an email for receipts and account recovery'}
+            subtitle={me.email ?? email.latest?.email ?? 'Add an email for receipts and account recovery'}
             state={email.state}
             latest={email.latest}
             open={open === 'email'}
