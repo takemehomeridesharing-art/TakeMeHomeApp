@@ -25,7 +25,7 @@ async function writeSampleId(): Promise<string> {
   const name = 'sample-id-jean-paul.svg';
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400">
   <rect width="640" height="400" rx="24" fill="#EDEFFF"/><rect x="24" y="24" width="592" height="64" rx="12" fill="#4353FF"/>
-  <text x="48" y="66" font-family="Arial" font-size="26" font-weight="700" fill="#fff">REPUBULIKA Y'U RWANDA · NATIONAL ID (SAMPLE)</text>
+  <text x="48" y="66" font-family="Arial" font-size="26" font-weight="700" fill="#fff">RWANDA · NATIONAL ID (SAMPLE)</text>
   <rect x="48" y="120" width="160" height="200" rx="12" fill="#C9CEF5"/><circle cx="128" cy="190" r="40" fill="#8E97E8"/><rect x="78" y="244" width="100" height="56" rx="28" fill="#8E97E8"/>
   <text x="240" y="150" font-family="Arial" font-size="22" fill="#191C2B">Names: HABIMANA Jean-Paul</text>
   <text x="240" y="190" font-family="Arial" font-size="22" fill="#191C2B">Date of birth: 14/03/1990</text>
