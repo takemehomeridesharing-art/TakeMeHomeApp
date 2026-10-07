@@ -460,6 +460,8 @@ export interface ServerToClientEvents {
   'chat:message': (m: ChatMessage) => void;
   /** Dev only: the mock MoMo provider simulating the USSD push on the payer's phone. */
   'momo:prompt': (p: MomoPrompt) => void;
+  /** Admins only: something in a queue changed — refetch. */
+  'admin:changed': (e: { kind: 'sos' | 'report' | 'verification' | 'booking' | 'user' }) => void;
 }
 
 // ─── admin ──────────────────────────────────────────────────────────────────────

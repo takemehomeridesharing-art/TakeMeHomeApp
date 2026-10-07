@@ -1,0 +1,369 @@
+// Take Me Home data model.
+//
+// Dev runs on SQLite; the schema only uses types Postgres also has (String, Int, Float,
+// Boolean, DateTime, Json, enums), so production is a provider + connection-string swap.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  female
+  male
+  other
+}
+
+enum UserStatus {
+  active
+  suspended
+}
+
+enum TripStatus {
+  published
+  full
+  in_progress
+  completed
+  cancelled
+}
+
+enum JoinRequestStatus {
+  pending
+  accepted
+  declined
+  cancelled
+  expired
+}
+
+enum BookingStatus {
+  confirmed
+  completed
+  no_show
+  refunded
+}
+
+enum PaymentStatus {
+  initiated
+  confirmed
+  failed
+  refunded
+}
+
+enum ReportStatus {
+  open
+  reviewing
+  resolved
+}
+
+enum VerificationType {
+  email
+  id
+  licence
+  vehicle
+}
+
+enum VerificationStatus {
+  pending
+  approved
+  rejected
+}
+
+model User {
+  id                  String     @id @default(cuid())
+  phone               String     @unique
+  name                String     @default("")
+  email               String?
+  gender              Gender?
+  homeArea            String?
+  trustedContactPhone String?
+  photoUrl            String?
+  isAdmin             Boolean    @default(false)
+  phoneVerifiedAt     DateTime?
+  emailVerifiedAt     DateTime?
+  idVerifiedAt        DateTime?
+  /// Driving licence verified.
+  driverVerifiedAt    DateTime?
+  ratingAvg           Float      @default(0)
+  ratingCount         Int        @default(0)
+  status              UserStatus @default(active)
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  vehicles             Vehicle[]
+  trips                Trip[]
+  joinRequests         JoinRequest[]
+  ratingsGiven         Rating[]              @relation("rater")
+  ratingsReceived      Rating[]              @relation("ratee")
+  reportsFiled         Report[]              @relation("reporter")
+  reportsAgainst       Report[]              @relation("reported")
+  sosEvents            SosEvent[]
+  notifications        Notification[]
+  messages             ChatMessage[]
+  blocking             Block[]               @relation("blocker")
+  blockedBy            Block[]               @relation("blocked")
+  verificationRequests VerificationRequest[]
+}
+
+model OtpChallenge {
+  id        String   @id @default(cuid())
+  phone     String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([phone, createdAt])
+}
+
+model Vehicle {
+  id         String    @id @default(cuid())
+  ownerId    String
+  owner      User      @relation(fields: [ownerId], references: [id])
+  make       String
+  model      String
+  plate      String    @unique
+  color      String
+  seats      Int
+  isEV       Boolean   @default(false)
+  /// 1–3 photo URLs.
+  photos     Json
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  trips                Trip[]
+  verificationRequests VerificationRequest[]
+
+  @@index([ownerId])
+}
+
+model Place {
+  id       String @id
+  name     String
+  lat      Float
+  lng      Float
+  landmark String
+
+  tripStops TripStop[]
+}
+
+model Trip {
+  id            String     @id @default(cuid())
+  driverId      String
+  driver        User       @relation(fields: [driverId], references: [id])
+  vehicleId     String
+  vehicle       Vehicle    @relation(fields: [vehicleId], references: [id])
+  /// Occurrences of one recurring publish share a series id.
+  seriesId      String?
+  departureTime DateTime
+  /// Weekday codes, e.g. ["MO","TU","WE","TH","FR"], or null for a one-off trip.
+  recurringDays Json?
+  seatsOffered  Int
+  womenOnly     Boolean    @default(false)
+  isEV          Boolean    @default(false)
+  totalKm       Float
+  status        TripStatus @default(published)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime   @default(now())
+
+  stops        TripStop[]
+  joinRequests JoinRequest[]
+
+  @@index([driverId, departureTime])
+  @@index([status, departureTime])
+}
+
+model TripStop {
+  id           String @id @default(cuid())
+  tripId       String
+  trip         Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  placeId      String
+  place        Place  @relation(fields: [placeId], references: [id])
+  order        Int
+  cumulativeKm Float
+
+  boardings  JoinRequest[] @relation("board")
+  alightings JoinRequest[] @relation("alight")
+
+  @@unique([tripId, order])
+  @@unique([tripId, placeId])
+}
+
+model JoinRequest {
+  id                 String            @id @default(cuid())
+  tripId             String
+  trip               Trip              @relation(fields: [tripId], references: [id])
+  passengerId        String
+  passenger          User              @relation(fields: [passengerId], references: [id])
+  boardStopId        String
+  boardStop          TripStop          @relation("board", fields: [boardStopId], references: [id])
+  alightStopId       String
+  alightStop         TripStop          @relation("alight", fields: [alightStopId], references: [id])
+  status             JoinRequestStatus @default(pending)
+  segmentKm          Float
+  /// Cost share for the driver, computed by the fare engine. Never set by a person.
+  contributionAmount Int
+  /// Platform fee.
+  bookingFee         Int
+  createdAt          DateTime          @default(now())
+  respondedAt        DateTime?
+
+  booking  Booking?
+  payments Payment[]
+
+  @@index([tripId, status])
+  @@index([passengerId, status])
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  joinRequestId String        @unique
+  joinRequest   JoinRequest   @relation(fields: [joinRequestId], references: [id])
+  tripCode      String        @unique
+  paymentId     String        @unique
+  payment       Payment       @relation(fields: [paymentId], references: [id])
+  status        BookingStatus @default(confirmed)
+  createdAt     DateTime      @default(now())
+
+  ratings   Rating[]
+  reports   Report[]
+  sosEvents SosEvent[]
+  messages  ChatMessage[]
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  joinRequestId String
+  joinRequest   JoinRequest   @relation(fields: [joinRequestId], references: [id])
+  amount        Int
+  provider      String
+  providerRef   String        @unique
+  msisdn        String
+  status        PaymentStatus @default(initiated)
+  failureReason String?
+  confirmedAt   DateTime?
+  createdAt     DateTime      @default(now())
+
+  booking Booking?
+
+  @@index([joinRequestId])
+}
+
+model Payout {
+  id          String   @id @default(cuid())
+  tripId      String
+  driverId    String
+  amount      Int
+  provider    String
+  providerRef String
+  createdAt   DateTime @default(now())
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  raterId   String
+  rater     User     @relation("rater", fields: [raterId], references: [id])
+  rateeId   String
+  ratee     User     @relation("ratee", fields: [rateeId], references: [id])
+  stars     Int
+  /// Subset of: Punctual, Safe driving, Clean car, Friendly, Late pickup.
+  tags      Json
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([bookingId, raterId])
+}
+
+model Report {
+  id             String       @id @default(cuid())
+  reporterId     String
+  reporter       User         @relation("reporter", fields: [reporterId], references: [id])
+  reportedUserId String?
+  reportedUser   User?        @relation("reported", fields: [reportedUserId], references: [id])
+  bookingId      String?
+  booking        Booking?     @relation(fields: [bookingId], references: [id])
+  reason         String
+  body           String
+  status         ReportStatus @default(open)
+  createdAt      DateTime     @default(now())
+}
+
+model SosEvent {
+  id               String    @id @default(cuid())
+  bookingId        String
+  booking          Booking   @relation(fields: [bookingId], references: [id])
+  userId           String
+  user             User      @relation(fields: [userId], references: [id])
+  lat              Float?
+  lng              Float?
+  notifiedContacts Boolean   @default(false)
+  contactPhone     String?
+  resolvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  type      String
+  /// { title, body, href?, ...context }
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([bookingId, createdAt])
+}
+
+model Block {
+  blockerId String
+  blocker   User     @relation("blocker", fields: [blockerId], references: [id])
+  blockedId String
+  blocked   User     @relation("blocked", fields: [blockedId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
+}
+
+model VerificationRequest {
+  id          String             @id @default(cuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id])
+  type        VerificationType
+  status      VerificationStatus @default(pending)
+  documentUrl String?
+  email       String?
+  vehicleId   String?
+  vehicle     Vehicle?           @relation(fields: [vehicleId], references: [id])
+  note        String?
+  createdAt   DateTime           @default(now())
+  reviewedAt  DateTime?
+}
+
+/// Messages "sent" by the mock SMS / push providers in dev, shown in the admin outbox.
+model DevOutbox {
+  id        String   @id @default(cuid())
+  channel   String
+  to        String
+  body      String
+  createdAt DateTime @default(now())
+}
