@@ -137,6 +137,8 @@ export function toMe(u: MeRow): Me {
   };
   return {
     ...toPublicUser(asUserRow),
+    // The caller sees their real (possibly empty) name so profile setup isn't skipped.
+    name: u.name,
     phone: u.phone,
     email: u.email,
     gender: u.gender,
