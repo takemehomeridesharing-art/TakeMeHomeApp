@@ -33,7 +33,12 @@ export function DriverTripView({ trip }: { trip: TripDetail }) {
 
   return (
     <Screen
-      header={{ title: 'Your trip', subtitle: routeLabel(trip.stops) }}
+      header={{
+        title: 'Your trip',
+        subtitle: routeLabel(trip.stops),
+        back: true,
+        onBack: () => (router.canGoBack() ? router.back() : router.navigate('/my-trip')),
+      }}
       refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} tintColor={colors.primary} />}
       testID="driver-trip-view"
     >
