@@ -22,3 +22,8 @@ export function recurringLabel(days: readonly Weekday[] | null | undefined): str
 
 /** True while a trip can still be managed (requests, start, cancel). */
 export const isActiveTrip = (status: TripStatus) => status === 'published' || status === 'full' || status === 'in_progress';
+
+/** `Today` → `today`, `Tomorrow` → `tomorrow`, `Thu 9 Oct` → `on Thu 9 Oct` (for "2 trips {x}"). */
+export function onDayPhrase(dayLabel: string): string {
+  return dayLabel === 'Today' || dayLabel === 'Tomorrow' ? dayLabel.toLowerCase() : `on ${dayLabel}`;
+}

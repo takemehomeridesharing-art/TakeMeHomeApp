@@ -114,7 +114,7 @@ export default function HomeTab() {
           <View>
             <Text variant="h2">Where are you going?</Text>
             <Text variant="caption">
-              {tripCount > 0 ? `${tripCount} trip${tripCount === 1 ? '' : 's'} published for tomorrow — tap a car on the map` : 'Find a seat on a trip that’s already going your way'}
+              {tripCount > 0 ? `${tripCount} trip${tripCount === 1 ? '' : 's'} tomorrow · tap a car on the map` : 'Find a seat on a trip that’s already going your way'}
             </Text>
           </View>
           <View style={s.fields}>

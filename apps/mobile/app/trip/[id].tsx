@@ -91,7 +91,10 @@ function PassengerTripView({ trip, initialBoard, initialAlight }: { trip: TripDe
   const setBoard = (stopId: string) => {
     hapticSelect();
     join.reset();
-    setSegment((x) => ({ ...x, board: stopId }));
+    // A stop exactly halfway between pick-up and drop-off moves the drop-off ("get off earlier").
+    const i = stops.findIndex((x) => x.id === stopId);
+    if (i > bi && i < ai && i - bi === ai - i) setSegment((x) => ({ ...x, alight: stopId }));
+    else setSegment((x) => ({ ...x, board: stopId }));
   };
   const setAlight = (stopId: string) => {
     hapticSelect();
@@ -200,7 +203,7 @@ function PassengerTripView({ trip, initialBoard, initialAlight }: { trip: TripDe
       <View style={s.stats}>
         <StatChip label={formatDay(trip.departureTime)} value={kigaliTime(trip.departureTime)} icon="time-outline" tone="primary" />
         <StatChip label="Seats left" value={seatsLeft > 0 ? `${seatsLeft} of ${trip.seatsOffered}` : 'Full'} icon="people-outline" tone={seatsLeft > 0 ? 'success' : 'neutral'} />
-        <StatChip label="You ride" value={formatKm(segmentKm)} icon="navigate-outline" />
+        <StatChip label="You ride" value={formatKm(segmentKm)} icon="navigate-outline" style={s.statWhite} />
       </View>
       {recurring ? (
         <View style={s.repeat}>
@@ -293,6 +296,7 @@ const useStyles = makeStyles((t) => ({
   plateText: { fontFamily: t.fonts.headingHeavy, fontSize: 15, letterSpacing: 1.2, color: t.colors.ink },
   card: { gap: 14, marginBottom: 14 },
   stats: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  statWhite: { backgroundColor: t.colors.surface, ...t.shadows.sm },
   repeat: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14, paddingHorizontal: 4 },
   note: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
   sectionGap: { marginTop: 8 },

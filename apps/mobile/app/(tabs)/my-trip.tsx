@@ -22,6 +22,7 @@ import { RequestsList } from '@/features/driver/RequestsList';
 import { Section } from '@/features/driver/Section';
 import { TripActions } from '@/features/driver/TripActions';
 import { TripHeroCard } from '@/features/driver/TripHeroCard';
+import { onDayPhrase } from '@/features/driver/tripMeta';
 import { formatDay } from '@/lib/format';
 import { useDriverDashboard, useHistory, useMe, useUnreadCount } from '@/lib/queries';
 import { makeStyles, useTheme } from '@/theme';
@@ -271,12 +272,12 @@ function ReturnTripShortcut({ draft, focus }: { draft: NonNullable<DriverDashboa
           </Text>
         </View>
       </View>
-      <TwoTripMeter used={draft.meterForDay.used} limit={draft.meterForDay.limit} dayLabel={day === 'Today' || day === 'Tomorrow' ? day.toLowerCase() : `on ${day}`} />
+      <TwoTripMeter used={draft.meterForDay.used} limit={draft.meterForDay.limit} dayLabel={onDayPhrase(day)} />
       {full ? (
         <View style={s.limitNote}>
           <Icon name="information-circle" size={16} color="accentInk" />
           <Text variant="caption" color="accentInk" style={s.flex}>
-            You already have {draft.meterForDay.used} trips on {day} — one out, one back. That&apos;s the daily limit, so there&apos;s no room for another.
+            You already have {draft.meterForDay.used} trips {onDayPhrase(day)} — one out, one back. That&apos;s the daily limit, so there&apos;s no room for another.
           </Text>
         </View>
       ) : null}

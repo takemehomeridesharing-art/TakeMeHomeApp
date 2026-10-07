@@ -28,7 +28,7 @@ import { PlaceSheet } from '@/features/driver/PlaceSheet';
 import { PricePreview } from '@/features/driver/PricePreview';
 import { NumberStepper, roundToSlot, TimeStepper, toMinutes } from '@/features/driver/Steppers';
 import { ToggleRow } from '@/features/driver/ToggleRow';
-import { WEEKDAY_SHORT } from '@/features/driver/tripMeta';
+import { onDayPhrase, WEEKDAY_SHORT } from '@/features/driver/tripMeta';
 import { ApiError, errorMessage } from '@/lib/api';
 import { formatDay, formatDeparture } from '@/lib/format';
 import { useDriverMeter, useMe, usePublishTrip, useVehicles } from '@/lib/queries';
@@ -183,7 +183,7 @@ export default function PublishTab() {
           : form.recurring && form.days.length === 0
             ? 'Pick at least one day to repeat on'
             : blockedByMeter
-              ? `You've already used both trips on ${dayText}`
+              ? `You've already used both trips ${onDayPhrase(dayText)}`
               : suspended
                 ? 'Your account is suspended'
                 : null;
@@ -413,7 +413,7 @@ export default function PublishTab() {
                 ))}
               </View>
               <Text variant="caption">
-                Starting {dayText.toLowerCase() === 'today' || dayText.toLowerCase() === 'tomorrow' ? dayText.toLowerCase() : dayText} at {form.time}. Each day still counts towards the
+                Starting {onDayPhrase(dayText).replace(/^on /, '')} at {form.time}. Each day still counts towards the
                 two-trip limit.
               </Text>
             </Animated.View>
@@ -421,7 +421,7 @@ export default function PublishTab() {
         </Card>
         <Card style={s.meterCard} testID="publish-meter">
           {meter.data ? (
-            <TwoTripMeter used={meter.data.used} limit={meter.data.limit} dayLabel={dayText === 'Today' || dayText === 'Tomorrow' ? dayText.toLowerCase() : `on ${dayText}`} />
+            <TwoTripMeter used={meter.data.used} limit={meter.data.limit} dayLabel={onDayPhrase(dayText)} />
           ) : (
             <Text variant="caption">{meter.isError ? "Couldn't check your trips for that day." : 'Checking your trips for that day…'}</Text>
           )}
@@ -429,7 +429,7 @@ export default function PublishTab() {
             <View style={s.limitNote} testID="meter-blocked">
               <Icon name="information-circle" size={16} color="accentInk" />
               <Text variant="caption" color="accentInk" style={s.flex}>
-                You already have {meter.data?.used} trips on {dayText}. Take Me Home is for trips you already make — up to two a day, one out and one back. Pick another day.
+                You already have {meter.data?.used} trips {onDayPhrase(dayText)}. Take Me Home is for trips you already make — up to two a day, one out and one back. Pick another day.
               </Text>
             </View>
           ) : (

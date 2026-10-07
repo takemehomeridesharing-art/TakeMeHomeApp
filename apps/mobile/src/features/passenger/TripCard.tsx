@@ -35,16 +35,6 @@ export function TripCard({ match, onPress, style, testID }: TripCardProps) {
             {trip.vehicle.make} {trip.vehicle.model} · {trip.vehicle.color}
           </Text>
         </View>
-        <View style={s.priceCol}>
-          <View style={s.pricePill}>
-            <Text style={s.price} numberOfLines={1}>
-              {formatRwf(match.contribution.total)}
-            </Text>
-          </View>
-          <Text variant="caption" style={s.priceCaption}>
-            your share
-          </Text>
-        </View>
       </View>
 
       <View style={s.body}>
@@ -76,7 +66,16 @@ export function TripCard({ match, onPress, style, testID }: TripCardProps) {
           {trip.isEV ? <Badge kind="ev" /> : null}
           <Badge kind={seats > 0 ? 'success' : 'neutral'} icon="person" label={seats > 0 ? `${seats} seat${seats === 1 ? '' : 's'} left` : 'Full'} />
         </View>
-        <Icon name="chevron-forward" size={18} color="ink3" />
+        <View style={s.priceCol}>
+          <Text variant="caption" style={s.priceCaption}>
+            your share
+          </Text>
+          <View style={s.pricePill}>
+            <Text style={s.price} numberOfLines={1}>
+              {formatRwf(match.contribution.total)}
+            </Text>
+          </View>
+        </View>
       </View>
     </Card>
   );
@@ -115,9 +114,9 @@ const useStyles = makeStyles((t) => ({
   top: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, paddingBottom: 10 },
   carBox: { width: 92, height: 56, borderRadius: t.radius.sm, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   driver: { flex: 1, gap: 2 },
-  priceCol: { alignItems: 'flex-end', gap: 2 },
-  pricePill: { backgroundColor: t.colors.accent2, borderRadius: t.radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
-  price: { fontFamily: t.fonts.headingHeavy, fontSize: 16, lineHeight: 20, color: t.colors.accentInk, fontVariant: ['tabular-nums'] },
+  priceCol: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  pricePill: { backgroundColor: t.colors.accent2, borderRadius: t.radius.pill, paddingHorizontal: 12, paddingVertical: 5 },
+  price: { fontFamily: t.fonts.headingHeavy, fontSize: 17, lineHeight: 21, color: t.colors.accentInk, fontVariant: ['tabular-nums'] },
   priceCaption: { fontSize: 11, lineHeight: 14 },
   body: { flexDirection: 'row', alignItems: 'center', gap: 14, marginHorizontal: 14, paddingVertical: 12, borderTopWidth: 1, borderTopColor: t.colors.line },
   timeCol: { alignItems: 'flex-start', minWidth: 58 },

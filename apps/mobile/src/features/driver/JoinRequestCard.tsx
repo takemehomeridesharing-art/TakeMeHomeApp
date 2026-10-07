@@ -2,7 +2,7 @@ import { formatKm, formatRwf, type JoinRequest } from '@tmh/shared';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp, interpolateColor, LinearTransition, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
-import { Avatar, Badge, Button, Stars, Text, toast, VerificationChips } from '@/components';
+import { Avatar, Badge, Button, Icon, Stars, Text, toast, VerificationChips } from '@/components';
 import { errorMessage } from '@/lib/api';
 import { formatRelative } from '@/lib/format';
 import { useAcceptRequest, useDeclineRequest } from '@/lib/queries';
@@ -76,20 +76,18 @@ export function JoinRequestCard({ request }: { request: JoinRequest }) {
         <VerificationChips chips={request.passenger.verification} show={['phone', 'email', 'id']} hideNone />
 
         <View style={s.segment}>
-          <View style={s.segmentLeft}>
-            <Text variant="caption" color="ink2">
-              Rides with you
-            </Text>
-            <Text variant="bodyStrong" numberOfLines={2}>
+          <View style={s.segmentTop}>
+            <Icon name="navigate" size={14} color="primary" />
+            <Text variant="bodyStrong" numberOfLines={1} style={s.flex}>
               {request.boardStop.place.name} → {request.alightStop.place.name} · {formatKm(request.segmentKm)}
             </Text>
-            <Text variant="caption" numberOfLines={1}>
-              Boards at {request.boardStop.place.landmark}
-            </Text>
           </View>
-          <View style={s.amount}>
+          <Text variant="caption" numberOfLines={1}>
+            Boards at {request.boardStop.place.landmark}
+          </Text>
+          <View style={s.amountRow}>
             <Text variant="caption" color="accentInk">
-              Contribution
+              Their contribution
             </Text>
             <Text variant="money" color="accentInk">
               {formatRwf(request.contributionAmount)}
@@ -129,9 +127,19 @@ const useStyles = makeStyles((t) => ({
   who: { flex: 1, gap: 2 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   name: { flexShrink: 1 },
-  segment: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.colors.bg, borderRadius: t.radius.sm, padding: 12 },
-  segmentLeft: { flex: 1, gap: 2 },
-  amount: { alignItems: 'flex-end', backgroundColor: t.colors.accent2, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
+  segment: { backgroundColor: t.colors.bg, borderRadius: t.radius.sm, padding: 12, gap: 2 },
+  segmentTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  flex: { flex: 1 },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    backgroundColor: t.colors.accent2,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
   actions: { flexDirection: 'row', gap: 10 },
   btn: { flex: 1 },
 }));
