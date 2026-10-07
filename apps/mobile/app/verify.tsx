@@ -5,6 +5,7 @@ import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { Badge, Button, CarIllustration, Card, Chip, ErrorState, Icon, Input, LoadingState, Screen, Text, toast, type IconName } from '@/components';
+import { Column } from '@/features/driver/Column';
 import { hapticNotify } from '@/features/driver/haptics';
 import { usePhotoUpload } from '@/features/driver/media';
 import { assetUrl, errorMessage } from '@/lib/api';
@@ -15,7 +16,14 @@ import { makeStyles, useTheme } from '@/theme';
 type RowState = 'verified' | 'pending' | 'rejected' | 'none';
 type Key = 'phone' | VerificationType;
 
-const STATE_BADGE: Record<RowState, { kind: 'success' | 'warning' | 'danger' | 'neutral'; label: string; icon: IconName }> = {
+const STATE_BADGE: Record<
+  RowState,
+  {
+    kind: 'success' | 'warning' | 'danger' | 'neutral';
+    label: string;
+    icon: IconName;
+  }
+> = {
   verified: { kind: 'success', label: 'Verified', icon: 'checkmark-circle' },
   pending: { kind: 'warning', label: 'Pending review', icon: 'time' },
   rejected: { kind: 'danger', label: 'Not approved', icon: 'alert-circle' },
@@ -69,83 +77,83 @@ export default function VerifyScreen() {
 
   return (
     <Screen header={{ title: 'Verification' }} testID="verify">
-      <Card style={s.intro}>
-        <View style={s.introTop}>
-          <View style={s.shield}>
-            <Icon name="shield-checkmark" size={26} color="primary" />
+      <Column>
+        <Card style={s.intro}>
+          <View style={s.introTop}>
+            <View style={s.shield}>
+              <Icon name="shield-checkmark" size={26} color="primary" />
+            </View>
+            <View style={s.flex}>
+              <Text variant="h2">{done} of 5 verified</Text>
+              <Text variant="caption">Verified members get more accepted requests and more passengers.</Text>
+            </View>
           </View>
-          <View style={s.flex}>
-            <Text variant="h2">
-              {done} of 5 verified
+          <View style={s.progress}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <View key={i} style={[s.progressSeg, i < done ? s.progressOn : null]} />
+            ))}
+          </View>
+          <View style={s.introNote}>
+            <Icon name="time-outline" size={16} color="primary" />
+            <Text variant="caption" color="ink" style={s.flex}>
+              An admin reviews your documents — usually within a day. Only our safety team sees them.
             </Text>
-            <Text variant="caption">Verified members get more accepted requests and more passengers.</Text>
           </View>
+        </Card>
+
+        <View style={s.rows}>
+          <VRow icon="call" title="Phone" subtitle={`${formatPhone(me.phone)} · confirmed by SMS code`} state="verified" />
+
+          <VRow
+            icon="mail"
+            title="Email"
+            subtitle={me.email ?? 'Add an email for receipts and account recovery'}
+            state={email.state}
+            latest={email.latest}
+            open={open === 'email'}
+            onToggle={() => toggle('email')}
+          >
+            <EmailForm initial={me.email ?? email.latest?.email ?? ''} onDone={() => setOpen(null)} />
+          </VRow>
+
+          <VRow
+            icon="id-card"
+            title="National ID"
+            subtitle="Your Rwandan ID or passport"
+            state={id.state}
+            latest={id.latest}
+            open={open === 'id'}
+            onToggle={() => toggle('id')}
+          >
+            <DocumentForm type="id" hint="A clear photo of the front of your ID, all four corners visible." onDone={() => setOpen(null)} />
+          </VRow>
+
+          <VRow
+            icon="card"
+            title="Driving licence"
+            subtitle="Needed to show the Licence badge to passengers"
+            state={licence.state}
+            latest={licence.latest}
+            open={open === 'licence'}
+            onToggle={() => toggle('licence')}
+          >
+            <DocumentForm type="licence" hint="A photo of your licence with your name and expiry date readable." onDone={() => setOpen(null)} />
+          </VRow>
+
+          <VRow
+            icon="car-sport"
+            title="Vehicle"
+            subtitle={me.vehicles.length ? `${me.vehicles.length} car${me.vehicles.length === 1 ? '' : 's'} registered` : 'Register the car you drive first'}
+            state={vehicleState}
+            latest={latestOf(me, 'vehicle')}
+            open={open === 'vehicle'}
+            onToggle={() => toggle('vehicle')}
+            alwaysOpenable
+          >
+            <VehicleForm me={me} onDone={() => setOpen(null)} />
+          </VRow>
         </View>
-        <View style={s.progress}>
-          {[0, 1, 2, 3, 4].map((i) => (
-            <View key={i} style={[s.progressSeg, i < done ? s.progressOn : null]} />
-          ))}
-        </View>
-        <View style={s.introNote}>
-          <Icon name="time-outline" size={16} color="primary" />
-          <Text variant="caption" color="ink" style={s.flex}>
-            An admin reviews your documents — usually within a day. Only our safety team sees them.
-          </Text>
-        </View>
-      </Card>
-
-      <View style={s.rows}>
-        <VRow icon="call" title="Phone" subtitle={`${formatPhone(me.phone)} · confirmed by SMS code`} state="verified" />
-
-        <VRow
-          icon="mail"
-          title="Email"
-          subtitle={me.email ?? 'Add an email for receipts and account recovery'}
-          state={email.state}
-          latest={email.latest}
-          open={open === 'email'}
-          onToggle={() => toggle('email')}
-        >
-          <EmailForm initial={me.email ?? email.latest?.email ?? ''} onDone={() => setOpen(null)} />
-        </VRow>
-
-        <VRow
-          icon="id-card"
-          title="National ID"
-          subtitle="Your Rwandan ID or passport"
-          state={id.state}
-          latest={id.latest}
-          open={open === 'id'}
-          onToggle={() => toggle('id')}
-        >
-          <DocumentForm type="id" hint="A clear photo of the front of your ID, all four corners visible." onDone={() => setOpen(null)} />
-        </VRow>
-
-        <VRow
-          icon="card"
-          title="Driving licence"
-          subtitle="Needed to show the Licence badge to passengers"
-          state={licence.state}
-          latest={licence.latest}
-          open={open === 'licence'}
-          onToggle={() => toggle('licence')}
-        >
-          <DocumentForm type="licence" hint="A photo of your licence with your name and expiry date readable." onDone={() => setOpen(null)} />
-        </VRow>
-
-        <VRow
-          icon="car-sport"
-          title="Vehicle"
-          subtitle={me.vehicles.length ? `${me.vehicles.length} car${me.vehicles.length === 1 ? '' : 's'} registered` : 'Register the car you drive first'}
-          state={vehicleState}
-          latest={latestOf(me, 'vehicle')}
-          open={open === 'vehicle'}
-          onToggle={() => toggle('vehicle')}
-          alwaysOpenable
-        >
-          <VehicleForm me={me} onDone={() => setOpen(null)} />
-        </VRow>
-      </View>
+      </Column>
     </Screen>
   );
 }
@@ -177,7 +185,12 @@ function VRow({
   return (
     <Animated.View layout={LinearTransition.duration(200)}>
       <Card padding={0} style={s.vcard} testID={`verify-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-        <Pressable onPress={openable ? onToggle : undefined} disabled={!openable} style={({ pressed }) => [s.vhead, pressed ? s.pressed : null]} accessibilityRole={openable ? 'button' : undefined}>
+        <Pressable
+          onPress={openable ? onToggle : undefined}
+          disabled={!openable}
+          style={({ pressed }) => [s.vhead, pressed ? s.pressed : null]}
+          accessibilityRole={openable ? 'button' : undefined}
+        >
           <View style={[s.vicon, state === 'verified' ? s.viconOk : state === 'pending' ? s.viconPending : null]}>
             <Icon name={icon} size={18} color={state === 'verified' ? 'success' : state === 'pending' ? 'accentInk' : 'primary'} />
           </View>
@@ -273,7 +286,13 @@ function PhotoPicker({ value, onChange, label }: { value: string | null; onChang
           </Pressable>
         </Animated.View>
       ) : (
-        <Pressable onPress={() => void pick()} disabled={photo.busy} style={({ pressed }) => [s.docPick, pressed ? s.pressed : null]} accessibilityRole="button" testID="verify-pick-photo">
+        <Pressable
+          onPress={() => void pick()}
+          disabled={photo.busy}
+          style={({ pressed }) => [s.docPick, pressed ? s.pressed : null]}
+          accessibilityRole="button"
+          testID="verify-pick-photo"
+        >
           {photo.busy ? (
             <ActivityIndicator color={colors.primary} />
           ) : (
@@ -410,19 +429,54 @@ const useStyles = makeStyles((t) => ({
   pressed: { opacity: 0.7 },
   intro: { gap: 14 },
   introTop: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  shield: { width: 52, height: 52, borderRadius: 26, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
+  shield: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: t.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   progress: { flexDirection: 'row', gap: 6 },
-  progressSeg: { flex: 1, height: 8, borderRadius: 4, backgroundColor: t.colors.line },
+  progressSeg: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: t.colors.line,
+  },
   progressOn: { backgroundColor: t.colors.success },
-  introNote: { flexDirection: 'row', gap: 8, alignItems: 'center', backgroundColor: t.colors.tint, borderRadius: t.radius.sm, padding: 12 },
+  introNote: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    backgroundColor: t.colors.tint,
+    borderRadius: t.radius.sm,
+    padding: 12,
+  },
   rows: { gap: 12, marginTop: 20 },
   vcard: { overflow: 'hidden' },
   vhead: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
-  vicon: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
+  vicon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: t.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   viconOk: { backgroundColor: t.colors.mint },
   viconPending: { backgroundColor: t.colors.accent2 },
   vright: { alignItems: 'flex-end', gap: 6 },
-  vnote: { flexDirection: 'row', gap: 8, alignItems: 'center', marginHorizontal: 16, marginBottom: 14, padding: 10, borderRadius: t.radius.sm, backgroundColor: t.colors.accent2 },
+  vnote: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 14,
+    padding: 10,
+    borderRadius: t.radius.sm,
+    backgroundColor: t.colors.accent2,
+  },
   vnoteRejected: { backgroundColor: t.colors.coralWash },
   vbody: { borderTopWidth: 1, borderTopColor: t.colors.line, padding: 16 },
   form: { gap: 12 },
@@ -438,9 +492,29 @@ const useStyles = makeStyles((t) => ({
     justifyContent: 'center',
     gap: 4,
   },
-  docPreview: { height: 180, borderRadius: t.radius.md, overflow: 'hidden', backgroundColor: t.colors.bg },
+  docPreview: {
+    height: 180,
+    borderRadius: t.radius.md,
+    overflow: 'hidden',
+    backgroundColor: t.colors.bg,
+  },
   docImg: { width: '100%', height: '100%' },
-  retake: { position: 'absolute', right: 10, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.colors.scrim, borderRadius: 14, paddingHorizontal: 10, height: 28 },
-  retakeText: { fontFamily: t.fonts.bodySemiBold, fontSize: 12, color: t.colors.onPrimary },
+  retake: {
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: t.colors.scrim,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    height: 28,
+  },
+  retakeText: {
+    fontFamily: t.fonts.bodySemiBold,
+    fontSize: 12,
+    color: t.colors.onPrimary,
+  },
   vehRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
 }));

@@ -59,7 +59,10 @@ export function usePhotoUpload() {
       const picked = await pickImage(options);
       if (!picked) return null;
       setBusy(true);
-      const { url } = await upload.mutateAsync({ base64: picked.base64, mimeType: picked.mimeType });
+      const { url } = await upload.mutateAsync({
+        base64: picked.base64,
+        mimeType: picked.mimeType,
+      });
       return url;
     } catch (e) {
       setError(errorMessage(e));

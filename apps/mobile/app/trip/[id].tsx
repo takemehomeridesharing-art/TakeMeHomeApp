@@ -253,6 +253,7 @@ function PassengerTripView({ trip, initialBoard, initialAlight }: { trip: TripDe
           alightStopId={segment.alight}
           onSelectBoard={activeRequest ? undefined : setBoard}
           onSelectAlight={activeRequest ? undefined : setAlight}
+          kmFromBoard
         />
       </Card>
 

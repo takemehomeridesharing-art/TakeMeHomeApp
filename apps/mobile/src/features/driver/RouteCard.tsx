@@ -49,11 +49,21 @@ const useStyles = makeStyles((t) => ({
   card: { overflow: 'hidden' },
   map: { borderTopLeftRadius: t.radius.lg, borderTopRightRadius: t.radius.lg },
   body: { padding: 16, gap: 16 },
-  legs: { gap: 8, borderTopWidth: 1, borderTopColor: t.colors.line, paddingTop: 14 },
+  legs: {
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: t.colors.line,
+    paddingTop: 14,
+  },
   leg: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   legName: { flex: 1 },
   seats: { flexDirection: 'row', gap: 4 },
-  seat: { width: 14, height: 14, borderRadius: 4, backgroundColor: t.colors.line },
+  seat: {
+    width: 14,
+    height: 14,
+    borderRadius: 4,
+    backgroundColor: t.colors.line,
+  },
   seatTaken: { backgroundColor: t.colors.primary },
   legCount: { width: 30, textAlign: 'right', fontFamily: t.fonts.bodySemiBold },
 }));

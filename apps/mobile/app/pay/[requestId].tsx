@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, EmptyState, ErrorState, fromE164, isValidLocalPhone, LoadingState, PhoneInput, Screen, Text, toE164 } from '@/components';
+import { Badge, Button, Card, EmptyState, ErrorState, fromE164, Icon, isValidLocalPhone, LoadingState, PhoneInput, Screen, Text, toE164 } from '@/components';
+import { CarVisual } from '@/features/passenger/CarVisual';
+import { DriverRow } from '@/features/passenger/DriverRow';
 import { ErrorCard } from '@/features/passenger/ErrorCard';
 import { hapticSuccess, hapticWarning } from '@/features/passenger/haptics';
 import { firstName } from '@/features/passenger/labels';
@@ -84,13 +86,28 @@ function PaySheet({ item }: { item: PassengerRequestItem }) {
   return (
     <Screen header={{ title: 'Confirm your seat' }} padding={0} contentStyle={s.content}>
       <Animated.View entering={FadeIn.duration(250)} style={s.summary}>
-        <Text variant="label">{formatDeparture(trip.departureTime)}</Text>
-        <Text variant="h2">
-          {jr.boardStop.place.name} → {jr.alightStop.place.name}
-        </Text>
-        <Text variant="caption">
-          With {trip.driver.name} · {trip.vehicle.make} {trip.vehicle.model} · {trip.vehicle.plate}
-        </Text>
+        <Card style={s.summaryCard}>
+          <View style={s.summaryTop}>
+            <View style={s.flex}>
+              <Text variant="label">{formatDeparture(trip.departureTime)}</Text>
+              <Text variant="h2">
+                {jr.boardStop.place.name} → {jr.alightStop.place.name}
+              </Text>
+              <Text variant="caption">
+                {trip.vehicle.color} {trip.vehicle.make} {trip.vehicle.model} · {trip.vehicle.plate}
+              </Text>
+            </View>
+            <View style={s.carBox}>
+              <CarVisual vehicle={trip.vehicle} width={84} height={40} />
+            </View>
+          </View>
+          <View style={s.hr} />
+          <DriverRow user={trip.driver} right={<Badge kind="success" icon="checkmark-circle" label="Accepted" />} />
+        </Card>
+        <View style={s.secure}>
+          <Icon name="shield-checkmark-outline" size={14} color="ink2" />
+          <Text variant="caption">You only pay once {driver} has accepted. Full refund if the trip is cancelled.</Text>
+        </View>
       </Animated.View>
 
       <View style={s.spacer} />
@@ -167,7 +184,7 @@ function PaySheet({ item }: { item: PassengerRequestItem }) {
               Payment didn&apos;t go through
             </Text>
             <Text variant="body" color="ink2" align="center">
-              {payment.data?.failureReason ?? 'The MoMo prompt was declined or timed out.'} You haven&apos;t been charged.
+              {sentence(payment.data?.failureReason) ?? 'The MoMo prompt was declined or timed out.'} You haven&apos;t been charged.
             </Text>
             <Button label="Try again" icon="refresh" size="lg" block onPress={retry} testID="momo-retry" />
           </Animated.View>
@@ -175,6 +192,12 @@ function PaySheet({ item }: { item: PassengerRequestItem }) {
       </Animated.View>
     </Screen>
   );
+}
+
+/** `Payer declined the MoMo prompt` → `Payer declined the MoMo prompt.` */
+function sentence(text: string | null | undefined): string | undefined {
+  if (!text) return undefined;
+  return /[.!?]$/.test(text.trim()) ? text.trim() : `${text.trim()}.`;
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -192,7 +215,12 @@ function Row({ label, value }: { label: string; value: string }) {
 const useStyles = makeStyles((t) => ({
   flex: { flex: 1 },
   content: { paddingBottom: 0 },
-  summary: { paddingHorizontal: 20, paddingTop: 8, gap: 4 },
+  summary: { paddingHorizontal: 20, paddingTop: 8, gap: 10 },
+  summaryCard: { gap: 12 },
+  summaryTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  carBox: { width: 92, height: 52, borderRadius: t.radius.sm, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
+  hr: { height: 1, backgroundColor: t.colors.line },
+  secure: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4 },
   spacer: { flex: 1, minHeight: 24 },
   sheet: {
     backgroundColor: t.colors.surface,

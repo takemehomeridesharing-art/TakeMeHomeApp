@@ -128,14 +128,16 @@ function TicketView({ booking: b }: { booking: Booking }) {
             <View style={s.carBox}>
               <CarVisual vehicle={b.trip.vehicle} width={96} height={44} />
             </View>
-            <View style={s.flex}>
-              <Text variant="bodyStrong">
+            <View style={s.carText}>
+              <Text variant="bodyStrong" numberOfLines={1}>
                 {b.trip.vehicle.color} {b.trip.vehicle.make} {b.trip.vehicle.model}
               </Text>
-              <Text variant="caption">{b.trip.isEV ? 'Electric · ' : ''}Look for this plate</Text>
-            </View>
-            <View style={s.plate}>
-              <Text style={s.plateText}>{b.trip.vehicle.plate}</Text>
+              <View style={s.plateRow}>
+                <View style={s.plate}>
+                  <Text style={s.plateText}>{b.trip.vehicle.plate}</Text>
+                </View>
+                {b.trip.isEV ? <Badge kind="ev" /> : null}
+              </View>
             </View>
           </View>
         </Ticket>
@@ -196,7 +198,7 @@ function TicketView({ booking: b }: { booking: Booking }) {
 
       <SectionTitle title="The route" style={s.section} />
       <Card style={s.stops}>
-        <StopList stops={b.trip.stops} boardStopId={b.boardStop.id} alightStopId={b.alightStop.id} />
+        <StopList stops={b.trip.stops} boardStopId={b.boardStop.id} alightStopId={b.alightStop.id} kmFromBoard />
       </Card>
 
       <Text variant="caption" align="center" style={s.fine}>
@@ -216,7 +218,9 @@ const useStyles = makeStyles((t) => ({
   divider: { height: 1, backgroundColor: t.colors.line },
   carRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   carBox: { width: 104, height: 54, borderRadius: t.radius.sm, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
-  plate: { borderWidth: 2, borderColor: t.colors.ink, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  carText: { flex: 1, gap: 6 },
+  plateRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  plate: { alignSelf: 'flex-start', borderWidth: 2, borderColor: t.colors.ink, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   plateText: { fontFamily: t.fonts.headingHeavy, fontSize: 13, letterSpacing: 1, color: t.colors.ink },
   quick: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   guarantee: { flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 16 },

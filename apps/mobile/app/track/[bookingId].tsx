@@ -224,7 +224,7 @@ const useStyles = makeStyles((t) => ({
   sentCard: { backgroundColor: t.colors.coralWash, borderRadius: t.radius.lg, padding: 16, gap: 6, borderWidth: 1, borderColor: t.colors.coral, marginBottom: 6 },
   sentHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   addContact: { marginLeft: -14 },
-  emergency: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
+  emergency: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 14 },
   sheetList: { gap: 10, backgroundColor: t.colors.bg, borderRadius: t.radius.md, padding: 12 },
   sheetLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 }));

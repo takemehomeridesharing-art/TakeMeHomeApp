@@ -2,20 +2,9 @@ import { formatRwf, kigaliTime, MAX_TRIPS_PER_DAY, type DriverDashboard, type Tr
 import { router } from 'expo-router';
 import { RefreshControl, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import {
-  Button,
-  CarIllustration,
-  Card,
-  EmptyState,
-  ErrorState,
-  HeaderIconButton,
-  Icon,
-  LoadingState,
-  Screen,
-  Text,
-  TwoTripMeter,
-} from '@/components';
+import { Button, CarIllustration, Card, EmptyState, ErrorState, HeaderIconButton, Icon, LoadingState, Screen, Text, TwoTripMeter } from '@/components';
 import { DriverTripRow } from '@/features/driver/DriverTripsList';
+import { Column } from '@/features/driver/Column';
 import { LedgerCard } from '@/features/driver/LedgerCard';
 import { PassengerList, passengerRows } from '@/features/driver/PassengerList';
 import { RequestsList } from '@/features/driver/RequestsList';
@@ -56,7 +45,7 @@ export default function MyTripTab() {
   if (dash.isPending) {
     return (
       <Screen tabBarSpace scroll={false}>
-        {header}
+        <Column>{header}</Column>
         <LoadingState label="Loading your trips…" />
       </Screen>
     );
@@ -64,7 +53,7 @@ export default function MyTripTab() {
   if (dash.isError) {
     return (
       <Screen tabBarSpace scroll={false}>
-        {header}
+        <Column>{header}</Column>
         <ErrorState error={dash.error} title="Couldn't load your dashboard" onRetry={() => void dash.refetch()} />
       </Screen>
     );
@@ -75,23 +64,19 @@ export default function MyTripTab() {
 
   return (
     <Screen tabBarSpace refreshControl={refresh} testID="my-trip">
-      {header}
-      {me?.status === 'suspended' ? (
-        <Card variant="outlined" style={s.suspended}>
-          <Icon name="alert-circle" size={20} color="coral" />
-          <Text variant="caption" color="ink" style={s.flex}>
-            Your account is suspended, so you can&apos;t publish or manage trips right now. Contact support if you think this is a mistake.
-          </Text>
-        </Card>
-      ) : null}
+      <Column>
+        {header}
+        {me?.status === 'suspended' ? (
+          <Card variant="outlined" style={s.suspended}>
+            <Icon name="alert-circle" size={20} color="coral" />
+            <Text variant="caption" color="ink" style={s.flex}>
+              Your account is suspended, so you can&apos;t publish or manage trips right now. Contact support if you think this is a mistake.
+            </Text>
+          </Card>
+        ) : null}
 
-      {!d.hasVehicle ? (
-        <VehicleOnboarding />
-      ) : !d.focusTrip ? (
-        <NoTrips dashboard={d} />
-      ) : (
-        <FocusTrip dashboard={d} focus={d.focusTrip} />
-      )}
+        {!d.hasVehicle ? <VehicleOnboarding /> : !d.focusTrip ? <NoTrips dashboard={d} /> : <FocusTrip dashboard={d} focus={d.focusTrip} />}
+      </Column>
     </Screen>
   );
 }
@@ -153,7 +138,11 @@ function NoTrips({ dashboard }: { dashboard: DriverDashboard }) {
           icon="add-circle"
           title="Publish the trip you're already making"
           body="Going to work, coming home, the school run — publish it with your empty seats and let people on your route request to join."
-          action={{ label: 'Publish a trip', icon: 'add-circle', onPress: () => router.navigate('/publish') }}
+          action={{
+            label: 'Publish a trip',
+            icon: 'add-circle',
+            onPress: () => router.navigate('/publish'),
+          }}
         />
       </Card>
       <Section title="Today">
@@ -225,7 +214,14 @@ function FocusTrip({ dashboard, focus }: { dashboard: DriverDashboard; focus: Tr
       </Section>
 
       {others.length ? (
-        <Section title="Other upcoming trips" count={others.length} action={{ label: 'All trips', onPress: () => router.navigate('/trips') }}>
+        <Section
+          title="Other upcoming trips"
+          count={others.length}
+          action={{
+            label: 'All trips',
+            onPress: () => router.navigate('/trips'),
+          }}
+        >
           <View style={s.others}>
             {others.slice(0, 4).map((t) => (
               <DriverTripRow key={t.id} trip={t} />
@@ -277,7 +273,8 @@ function ReturnTripShortcut({ draft, focus }: { draft: NonNullable<DriverDashboa
         <View style={s.limitNote}>
           <Icon name="information-circle" size={16} color="accentInk" />
           <Text variant="caption" color="accentInk" style={s.flex}>
-            You already have {draft.meterForDay.used} trips {onDayPhrase(day)} — one out, one back. That&apos;s the daily limit, so there&apos;s no room for another.
+            You already have {draft.meterForDay.used} trips {onDayPhrase(day)} — one out, one back. That&apos;s the daily limit, so there&apos;s no room for
+            another.
           </Text>
         </View>
       ) : null}
@@ -315,7 +312,7 @@ function RecentTripCard() {
             Completed · {from} → {to}
           </Text>
           <Text variant="caption" numberOfLines={2}>
-            {formatRwf(recent.amount)} recovered {formatDay(recent.trip.departureTime).toLowerCase()}. Rate your passengers and see the ledger.
+            {formatRwf(recent.amount)} recovered towards your running cost. Rate your passengers and see the ledger.
           </Text>
         </View>
         <Icon name="chevron-forward" size={18} color="primary" />
@@ -326,24 +323,84 @@ function RecentTripCard() {
 
 const useStyles = makeStyles((t) => ({
   flex: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 12, marginBottom: 16 },
-  suspended: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16, borderColor: t.colors.coral, backgroundColor: t.colors.coralWash },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  suspended: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+    borderColor: t.colors.coral,
+    backgroundColor: t.colors.coralWash,
+  },
   onboard: { gap: 14, paddingVertical: 24 },
-  onboardArt: { alignItems: 'center', backgroundColor: t.colors.tint, borderRadius: t.radius.md, paddingVertical: 20, marginBottom: 4 },
+  onboardArt: {
+    alignItems: 'center',
+    backgroundColor: t.colors.tint,
+    borderRadius: t.radius.md,
+    paddingVertical: 20,
+    marginBottom: 4,
+  },
   steps: { gap: 14, marginVertical: 6 },
   step: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  stepNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.colors.primary, alignItems: 'center', justifyContent: 'center' },
-  stepNumText: { fontFamily: t.fonts.heading, fontSize: 14, color: t.colors.onPrimary },
+  stepNum: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: t.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepNumText: {
+    fontFamily: t.fonts.heading,
+    fontSize: 14,
+    color: t.colors.onPrimary,
+  },
   emptyCard: { paddingVertical: 0 },
   meterNote: { marginTop: 10 },
   actions: { marginTop: 16 },
   listCard: { paddingVertical: 4 },
   meterCard: { gap: 16 },
-  returnBox: { gap: 12, borderTopWidth: 1, borderTopColor: t.colors.line, paddingTop: 16 },
+  returnBox: {
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: t.colors.line,
+    paddingTop: 16,
+  },
   returnHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  returnIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
-  limitNote: { flexDirection: 'row', gap: 8, backgroundColor: t.colors.accent2, borderRadius: t.radius.sm, padding: 12 },
+  returnIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: t.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  limitNote: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: t.colors.accent2,
+    borderRadius: t.radius.sm,
+    padding: 12,
+  },
   others: { gap: 10 },
-  recent: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-  recentIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.colors.mint, alignItems: 'center', justifyContent: 'center' },
+  recent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  recentIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: t.colors.mint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 }));

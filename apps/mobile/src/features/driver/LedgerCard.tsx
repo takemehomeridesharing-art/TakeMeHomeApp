@@ -27,7 +27,10 @@ export function LedgerCard({ ledger, seatsOffered, title = 'Cost-sharing ledger'
 
   const fill = useSharedValue(0);
   useEffect(() => {
-    fill.value = withTiming(recoveredPct, { duration: 700, easing: Easing.out(Easing.cubic) });
+    fill.value = withTiming(recoveredPct, {
+      duration: 700,
+      easing: Easing.out(Easing.cubic),
+    });
   }, [recoveredPct, fill]);
   const fillStyle = useAnimatedStyle(() => ({ width: `${fill.value}%` }));
 
@@ -42,7 +45,13 @@ export function LedgerCard({ ledger, seatsOffered, title = 'Cost-sharing ledger'
 
       <View style={s.figures}>
         <Figure label="Trip cost" hint="What this drive costs to run" value={formatRwf(ledger.tripCost)} />
-        <Figure label="Recovered so far" hint="Contributions from paid passengers" value={formatRwf(ledger.recovered)} tone="accent" testID="ledger-recovered" />
+        <Figure
+          label="Recovered so far"
+          hint="Contributions from paid passengers"
+          value={formatRwf(ledger.recovered)}
+          tone="accent"
+          testID="ledger-recovered"
+        />
         <Figure label="Share you still carry" value={formatRwf(ledger.driverCarries)} tone="primary" testID="ledger-carries" last />
       </View>
 
@@ -71,7 +80,8 @@ export function LedgerCard({ ledger, seatsOffered, title = 'Cost-sharing ledger'
       <View style={s.note}>
         <Icon name="leaf" size={16} color="accentInk" />
         <Text variant="caption" color="accentInk" style={s.noteText}>
-          Even with every seat filled you carry at least {formatRwf(minShare)} — that&apos;s the no-profit rule. Each passenger covers their share of the running cost
+          Even with every seat filled you carry at least {formatRwf(minShare)} — that&apos;s the no-profit rule. Each passenger covers their share of the
+          running cost
           {seatsOffered ? ` ÷ (${seatsOffered} seats + you)` : ''}; booking fees go to the platform, never to you.
         </Text>
       </View>
@@ -79,7 +89,21 @@ export function LedgerCard({ ledger, seatsOffered, title = 'Cost-sharing ledger'
   );
 }
 
-function Figure({ label, hint, value, tone, testID, last }: { label: string; hint?: string; value: string; tone?: 'accent' | 'primary'; testID?: string; last?: boolean }) {
+function Figure({
+  label,
+  hint,
+  value,
+  tone,
+  testID,
+  last,
+}: {
+  label: string;
+  hint?: string;
+  value: string;
+  tone?: 'accent' | 'primary';
+  testID?: string;
+  last?: boolean;
+}) {
   const s = useStyles();
   return (
     <View style={[s.figure, last ? null : s.figureDivider]} testID={testID}>
@@ -105,28 +129,100 @@ const useStyles = makeStyles((t) => ({
     gap: 14,
     ...t.shadows.md,
   },
-  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  figures: { backgroundColor: t.colors.bg, borderRadius: t.radius.sm, paddingHorizontal: 12 },
-  figure: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  figures: {
+    backgroundColor: t.colors.bg,
+    borderRadius: t.radius.sm,
+    paddingHorizontal: 12,
+  },
+  figure: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+  },
   figureDivider: { borderBottomWidth: 1, borderBottomColor: t.colors.line },
   figureTexts: { flex: 1, gap: 0 },
-  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: t.colors.ink3 },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: t.colors.ink3,
+  },
   dotAccent: { backgroundColor: t.colors.accent },
   dotPrimary: { backgroundColor: t.colors.primary },
-  figureValue: { fontFamily: t.fonts.headingHeavy, fontSize: 18, lineHeight: 24, color: t.colors.ink, fontVariant: ['tabular-nums'] },
+  figureValue: {
+    fontFamily: t.fonts.headingHeavy,
+    fontSize: 18,
+    lineHeight: 24,
+    color: t.colors.ink,
+    fontVariant: ['tabular-nums'],
+  },
   valueAccent: { color: t.colors.accentInk },
   valuePrimary: { color: t.colors.primary },
   barWrap: { gap: 8 },
-  track: { height: 14, borderRadius: 7, backgroundColor: t.colors.tint, overflow: 'hidden' },
-  fill: { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 7, backgroundColor: t.colors.accent },
-  never: { position: 'absolute', top: 0, bottom: 0, right: 0, flexDirection: 'row', gap: 5, backgroundColor: t.colors.line, overflow: 'hidden', paddingLeft: 3 },
-  stripe: { width: 2, height: 30, marginTop: -8, backgroundColor: t.colors.surface, opacity: 0.8, transform: [{ rotate: '35deg' }] },
-  capMarker: { position: 'absolute', top: -3, width: 2, height: 20, marginLeft: -1, borderRadius: 1, backgroundColor: t.colors.ink2 },
+  track: {
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: t.colors.tint,
+    overflow: 'hidden',
+  },
+  fill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: 7,
+    backgroundColor: t.colors.accent,
+  },
+  never: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    right: 0,
+    flexDirection: 'row',
+    gap: 5,
+    backgroundColor: t.colors.line,
+    overflow: 'hidden',
+    paddingLeft: 3,
+  },
+  stripe: {
+    width: 2,
+    height: 30,
+    marginTop: -8,
+    backgroundColor: t.colors.surface,
+    opacity: 0.8,
+    transform: [{ rotate: '35deg' }],
+  },
+  capMarker: {
+    position: 'absolute',
+    top: -3,
+    width: 2,
+    height: 20,
+    marginLeft: -1,
+    borderRadius: 1,
+    backgroundColor: t.colors.ink2,
+  },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   swatch: { width: 10, height: 10, borderRadius: 3 },
   swatchFill: { backgroundColor: t.colors.accent },
-  swatchCap: { backgroundColor: t.colors.line, borderWidth: 1, borderColor: t.colors.ink3 },
-  note: { flexDirection: 'row', gap: 8, backgroundColor: t.colors.accent2, borderRadius: t.radius.sm, padding: 12 },
+  swatchCap: {
+    backgroundColor: t.colors.line,
+    borderWidth: 1,
+    borderColor: t.colors.ink3,
+  },
+  note: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: t.colors.accent2,
+    borderRadius: t.radius.sm,
+    padding: 12,
+  },
   noteText: { flex: 1 },
 }));

@@ -1,13 +1,4 @@
-import {
-  bookingFeeFor,
-  computeContribution,
-  driverRecoveryCap,
-  formatKm,
-  formatRwf,
-  round1,
-  RUNNING_COST_PER_KM,
-  type CorridorStop,
-} from '@tmh/shared';
+import { bookingFeeFor, computeContribution, driverRecoveryCap, formatKm, formatRwf, round1, RUNNING_COST_PER_KM, type CorridorStop } from '@tmh/shared';
 import { View } from 'react-native';
 import { Icon, Text } from '@/components';
 import { makeStyles } from '@/theme';
@@ -36,7 +27,16 @@ function sampleSegments(corridor: readonly CorridorStop[], nameOf: (id: string) 
   const add = (a: CorridorStop, b: CorridorStop) => {
     const km = round1(b.cumulativeKm - a.cumulativeKm);
     if (km <= 0 || rows.some((r) => r.key === `${a.placeId}-${b.placeId}`)) return;
-    rows.push({ key: `${a.placeId}-${b.placeId}`, label: `${nameOf(a.placeId)} → ${nameOf(b.placeId)}`, km, costShare: computeContribution({ segmentKm: km, seatsOffered: seats, isEV: false }).costShare });
+    rows.push({
+      key: `${a.placeId}-${b.placeId}`,
+      label: `${nameOf(a.placeId)} → ${nameOf(b.placeId)}`,
+      km,
+      costShare: computeContribution({
+        segmentKm: km,
+        seatsOffered: seats,
+        isEV: false,
+      }).costShare,
+    });
   };
   corridor.slice(0, -1).forEach((st) => add(st, last));
   corridor.slice(1, -1).forEach((st) => add(first, st));
@@ -52,7 +52,11 @@ export function PricePreview({ corridor, nameOf, seatsOffered, isEV }: PricePrev
   if (corridor.length < 2) return null;
   const totalKm = corridor[corridor.length - 1]!.cumulativeKm;
   if (!(totalKm > 0)) return null;
-  const perSeat = computeContribution({ segmentKm: totalKm, seatsOffered, isEV }).costShare;
+  const perSeat = computeContribution({
+    segmentKm: totalKm,
+    seatsOffered,
+    isEV,
+  }).costShare;
   const cap = driverRecoveryCap({ totalKm, seatsOffered });
   const fee = bookingFeeFor(isEV);
   const rows = sampleSegments(corridor, nameOf, seatsOffered);
@@ -79,7 +83,8 @@ export function PricePreview({ corridor, nameOf, seatsOffered, isEV }: PricePrev
       <View style={s.formula}>
         <Icon name="calculator-outline" size={16} color="ink2" />
         <Text variant="caption" color="ink" style={s.formulaText} testID="price-formula">
-          {formatRwf(RUNNING_COST_PER_KM)}/km × {formatKm(totalKm)} ÷ ({seatsOffered} seat{seatsOffered === 1 ? '' : 's'} + 1) = {formatRwf(perSeat)} per seat for the full route
+          {formatRwf(RUNNING_COST_PER_KM)}/km × {formatKm(totalKm)} ÷ ({seatsOffered} seat{seatsOffered === 1 ? '' : 's'} + 1) = {formatRwf(perSeat)} per seat
+          for the full route
         </Text>
       </View>
 
@@ -132,20 +137,63 @@ const useStyles = makeStyles((t) => ({
     gap: 14,
     ...t.shadows.md,
   },
-  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  capped: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.colors.accent2, borderRadius: t.radius.pill, paddingHorizontal: 8, height: 22 },
+  head: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  capped: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: t.colors.accent2,
+    borderRadius: t.radius.pill,
+    paddingHorizontal: 8,
+    height: 22,
+  },
   cappedText: { fontFamily: t.fonts.bodyBold, fontSize: 11 },
   hero: { gap: 0 },
-  heroValue: { fontFamily: t.fonts.headingHeavy, fontSize: 34, lineHeight: 40, color: t.colors.accentInk, fontVariant: ['tabular-nums'], letterSpacing: -0.5 },
-  formula: { flexDirection: 'row', gap: 8, backgroundColor: t.colors.bg, borderRadius: t.radius.sm, padding: 12, alignItems: 'flex-start' },
+  heroValue: {
+    fontFamily: t.fonts.headingHeavy,
+    fontSize: 34,
+    lineHeight: 40,
+    color: t.colors.accentInk,
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.5,
+  },
+  formula: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: t.colors.bg,
+    borderRadius: t.radius.sm,
+    padding: 12,
+    alignItems: 'flex-start',
+  },
   formulaText: { flex: 1, fontFamily: t.fonts.bodySemiBold },
   table: { gap: 8 },
-  tableHead: { flexDirection: 'row', gap: 8, borderBottomWidth: 1, borderBottomColor: t.colors.line, paddingBottom: 6 },
+  tableHead: {
+    flexDirection: 'row',
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: t.colors.line,
+    paddingBottom: 6,
+  },
   tableRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   colRoute: { flex: 1 },
   colKm: { width: 60, textAlign: 'right' },
   colAmt: { width: 84, textAlign: 'right' },
-  amt: { fontFamily: t.fonts.heading, fontSize: 14, color: t.colors.ink, fontVariant: ['tabular-nums'] },
-  note: { flexDirection: 'row', gap: 8, backgroundColor: t.colors.accent2, borderRadius: t.radius.sm, padding: 12 },
+  amt: {
+    fontFamily: t.fonts.heading,
+    fontSize: 14,
+    color: t.colors.ink,
+    fontVariant: ['tabular-nums'],
+  },
+  note: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: t.colors.accent2,
+    borderRadius: t.radius.sm,
+    padding: 12,
+  },
   noteText: { flex: 1 },
 }));

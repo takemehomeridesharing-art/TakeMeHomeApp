@@ -2,14 +2,26 @@ import { type TripStatus, type Weekday } from '@tmh/shared';
 import { type BadgeKind, type IconName } from '@/components';
 
 export const TRIP_STATUS_META: Record<TripStatus, { label: string; kind: BadgeKind; icon: IconName }> = {
-  published: { label: 'Open for requests', kind: 'primary', icon: 'radio-outline' },
+  published: {
+    label: 'Open for requests',
+    kind: 'primary',
+    icon: 'radio-outline',
+  },
   full: { label: 'Full', kind: 'warning', icon: 'people' },
   in_progress: { label: 'On the road', kind: 'success', icon: 'navigate' },
   completed: { label: 'Completed', kind: 'success', icon: 'checkmark-circle' },
   cancelled: { label: 'Cancelled', kind: 'danger', icon: 'close-circle' },
 };
 
-export const WEEKDAY_SHORT: Record<Weekday, string> = { MO: 'Mon', TU: 'Tue', WE: 'Wed', TH: 'Thu', FR: 'Fri', SA: 'Sat', SU: 'Sun' };
+export const WEEKDAY_SHORT: Record<Weekday, string> = {
+  MO: 'Mon',
+  TU: 'Tue',
+  WE: 'Wed',
+  TH: 'Thu',
+  FR: 'Fri',
+  SA: 'Sat',
+  SU: 'Sun',
+};
 
 /** `Mon–Fri`, `Mon, Wed, Fri`, or null for one-off trips. */
 export function recurringLabel(days: readonly Weekday[] | null | undefined): string | null {

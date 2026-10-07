@@ -35,8 +35,16 @@ export function DriverTripsList() {
           }
           action={
             dash.data.hasVehicle
-              ? { label: 'Publish a trip', icon: 'add-circle', onPress: () => router.navigate('/publish') }
-              : { label: 'Add your car', icon: 'car-sport', onPress: () => router.push('/vehicle/new') }
+              ? {
+                  label: 'Publish a trip',
+                  icon: 'add-circle',
+                  onPress: () => router.navigate('/publish'),
+                }
+              : {
+                  label: 'Add your car',
+                  icon: 'car-sport',
+                  onPress: () => router.push('/vehicle/new'),
+                }
           }
         />
       ) : (
@@ -102,7 +110,13 @@ const useStyles = makeStyles((t) => ({
   list: { gap: 10 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   timeCol: { width: 64, alignItems: 'flex-start', gap: 0 },
-  time: { fontFamily: t.fonts.headingHeavy, fontSize: 20, lineHeight: 26, color: t.colors.ink, fontVariant: ['tabular-nums'] },
+  time: {
+    fontFamily: t.fonts.headingHeavy,
+    fontSize: 20,
+    lineHeight: 26,
+    color: t.colors.ink,
+    fontVariant: ['tabular-nums'],
+  },
   mid: { flex: 1, gap: 4 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },

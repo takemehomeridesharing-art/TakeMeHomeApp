@@ -31,7 +31,24 @@ export function RequestsList({ requests, emptyText }: { requests: readonly JoinR
 
 const useStyles = makeStyles((t) => ({
   list: { gap: 12 },
-  empty: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: t.radius.md, borderWidth: 1, borderStyle: 'dashed', borderColor: t.colors.line, backgroundColor: t.colors.surface },
-  emptyIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
+  empty: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: t.radius.md,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: t.colors.line,
+    backgroundColor: t.colors.surface,
+  },
+  emptyIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: t.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   emptyText: { flex: 1 },
 }));

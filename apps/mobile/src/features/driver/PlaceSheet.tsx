@@ -58,11 +58,23 @@ export function PlaceSheet({ visible, onClose, title, subtitle, selectedId, disa
 }
 
 const useStyles = makeStyles((t) => ({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+  },
   divider: { borderBottomWidth: 1, borderBottomColor: t.colors.line },
   pressed: { opacity: 0.6 },
   disabled: { opacity: 0.4 },
-  pin: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
+  pin: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: t.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   pinSelected: { backgroundColor: t.colors.primary },
   texts: { flex: 1, gap: 1 },
 }));

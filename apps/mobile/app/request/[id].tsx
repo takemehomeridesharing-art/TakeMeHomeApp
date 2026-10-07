@@ -127,7 +127,7 @@ function RequestView({ item }: { item: PassengerRequestItem }) {
 
         <Card style={s.card}>
           <Text variant="h3">Your stops</Text>
-          <StopList stops={trip.stops} boardStopId={jr.boardStop.id} alightStopId={jr.alightStop.id} compact />
+          <StopList stops={trip.stops} boardStopId={jr.boardStop.id} alightStopId={jr.alightStop.id} compact kmFromBoard />
         </Card>
 
         <FareBreakdownCard

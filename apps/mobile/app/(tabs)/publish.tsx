@@ -23,6 +23,7 @@ import { Pressable, Switch, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { Badge, Button, CarIllustration, Card, Chip, EmptyState, Icon, Screen, Text, toast, TwoTripMeter } from '@/components';
 import { TripMap } from '@/components/TripMap';
+import { Column } from '@/features/driver/Column';
 import { hapticNotify, hapticTap } from '@/features/driver/haptics';
 import { PlaceSheet } from '@/features/driver/PlaceSheet';
 import { PricePreview } from '@/features/driver/PricePreview';
@@ -220,317 +221,342 @@ export default function PublishTab() {
   if (!vehicle) {
     return (
       <Screen tabBarSpace>
-        <Title />
-        <Card style={s.noCar}>
-          <View style={s.noCarArt}>
-            <CarIllustration color="Silver" width={200} />
-          </View>
-          <EmptyState
-            icon="car-sport"
-            title="Add your car to start sharing rides"
-            body="Register the car you drive — then publish the trips you already make and share the running cost."
-            action={{ label: 'Add your car', icon: 'add', onPress: () => router.push('/vehicle/new') }}
-            style={s.noCarEmpty}
-          />
-        </Card>
+        <Column>
+          <Title />
+          <Card style={s.noCar}>
+            <View style={s.noCarArt}>
+              <CarIllustration color="Silver" width={200} />
+            </View>
+            <EmptyState
+              icon="car-sport"
+              title="Add your car to start sharing rides"
+              body="Register the car you drive — then publish the trips you already make and share the running cost."
+              action={{
+                label: 'Add your car',
+                icon: 'add',
+                onPress: () => router.push('/vehicle/new'),
+              }}
+              style={s.noCarEmpty}
+            />
+          </Card>
+        </Column>
       </Screen>
     );
   }
 
   return (
     <Screen tabBarSpace testID="publish">
-      <Title />
+      <Column>
+        <Title />
 
-      {suspended ? (
-        <View style={s.errorBox}>
-          <Icon name="alert-circle" size={20} color="coral" />
-          <Text variant="caption" color="ink" style={s.flex}>
-            Your account is suspended, so you can&apos;t publish trips right now. Contact support if you think this is a mistake.
-          </Text>
-        </View>
-      ) : null}
-
-      {/* 1 · Car */}
-      <Step n={1} title="Your car">
-        {vehicles.length > 1 ? (
-          <View style={s.vehicleList}>
-            {vehicles.map((v) => (
-              <VehicleOption key={v.id} vehicle={v} selected={v.id === vehicle.id} onPress={() => update({ vehicleId: v.id })} />
-            ))}
+        {suspended ? (
+          <View style={s.errorBox}>
+            <Icon name="alert-circle" size={20} color="coral" />
+            <Text variant="caption" color="ink" style={s.flex}>
+              Your account is suspended, so you can&apos;t publish trips right now. Contact support if you think this is a mistake.
+            </Text>
           </View>
-        ) : (
-          <VehicleOption vehicle={vehicle} selected />
-        )}
-        <Pressable onPress={() => router.push('/vehicle/new')} hitSlop={6} style={s.addCar}>
-          <Icon name="add-circle-outline" size={16} color="primary" />
-          <Text variant="caption" color="primary" style={s.link}>
-            Add another car
-          </Text>
-        </Pressable>
-      </Step>
+        ) : null}
 
-      {/* 2 · Route */}
-      <Step n={2} title="Your route" subtitle="Where you're going anyway. We suggest the stops along the way.">
-        <Card padding={0}>
-          <View style={s.endpoints}>
-            <View style={s.endpointRail}>
-              <View style={s.dotFrom} />
-              <View style={s.endpointLine} />
-              <View style={s.dotTo} />
-            </View>
-            <View style={s.flex}>
-              <EndpointRow label="From" placeId={form.from} placeholder="Where do you start?" onPress={() => setSheet('from')} testID="pick-from" />
-              <View style={s.hair} />
-              <EndpointRow label="To" placeId={form.to} placeholder="Where are you going?" onPress={() => setSheet('to')} testID="pick-to" />
-            </View>
-            <Pressable
-              onPress={() => {
-                hapticTap();
-                update({ from: form.to, to: form.from, vias: [], skipped: [] });
-              }}
-              disabled={!form.from && !form.to}
-              accessibilityRole="button"
-              accessibilityLabel="Swap from and to"
-              style={({ pressed }) => [s.swap, pressed ? s.pressed : null]}
-              testID="swap"
-            >
-              <Icon name="swap-vertical" size={20} color="primary" />
-            </Pressable>
-          </View>
-
-          {form.from && form.to && !suggestion ? (
-            <View style={s.routeError}>
-              <Icon name="alert-circle-outline" size={16} color="coral" />
-              <Text variant="caption" color="coral" style={s.flex}>
-                We couldn&apos;t route through those stops without doubling back. Remove a via stop.
-              </Text>
-            </View>
-          ) : null}
-
-          {suggestion ? (
-            <Animated.View entering={FadeIn.duration(250)} style={s.corridor} testID="corridor">
-              <TripMap
-                routeStops={served.map((id) => KIGALI_PLACES.find((p) => p.id === id)!)}
-                boardPlaceId={form.from ?? undefined}
-                alightPlaceId={form.to ?? undefined}
-                height={190}
-                interactive={false}
-              />
-              <View style={s.corridorBody}>
-                <View style={s.corridorHead}>
-                  <Text variant="label">Stops on your route</Text>
-                  <Text variant="caption" color="ink">
-                    {formatKm(totalKm)} · {served.length} stops
-                  </Text>
-                </View>
-                <Text variant="caption">Turn off stops where you won&apos;t pick up or drop off.</Text>
-                <View>
-                  {route.map((id, i) => {
-                    const endpoint = i === 0 || i === route.length - 1;
-                    const isVia = form.vias.includes(id);
-                    const on = endpoint || !form.skipped.includes(id);
-                    const km = routeKm.find((c) => c.placeId === id)?.cumulativeKm ?? 0;
-                    return (
-                      <Animated.View key={id} layout={LinearTransition} entering={FadeInDown.duration(200)}>
-                        <CorridorRow
-                          id={id}
-                          first={i === 0}
-                          last={i === route.length - 1}
-                          km={km}
-                          on={on}
-                          endpoint={endpoint}
-                          via={isVia}
-                          onToggle={() =>
-                            update({ skipped: on ? [...form.skipped, id] : form.skipped.filter((x) => x !== id) })
-                          }
-                          onRemoveVia={() => update({ vias: form.vias.filter((x) => x !== id), skipped: form.skipped.filter((x) => x !== id) })}
-                        />
-                      </Animated.View>
-                    );
-                  })}
-                </View>
-                {suggestion.nearby.length ? (
-                  <View style={s.viaBlock}>
-                    <Text variant="caption" color="ink" style={s.semi}>
-                      Add a via stop
-                    </Text>
-                    <View style={s.chips}>
-                      {[...suggestion.nearby]
-                        .sort((a, b) => placeName(a).localeCompare(placeName(b)))
-                        .map((id) => (
-                          <Chip
-                            key={id}
-                            label={placeName(id)}
-                            icon="add"
-                            onPress={() => {
-                              const next = [...form.vias, id];
-                              if (!suggestCorridor(form.from!, form.to!, next)) {
-                                toast.error(`Can't go via ${placeName(id)}`, "That would double back on your route.");
-                                return;
-                              }
-                              hapticTap();
-                              update({ vias: next });
-                            }}
-                          />
-                        ))}
-                    </View>
-                  </View>
-                ) : null}
-              </View>
-            </Animated.View>
-          ) : null}
-        </Card>
-      </Step>
-
-      {/* 3 · When */}
-      <Step n={3} title="When you leave">
-        <Card style={s.gap14}>
-          <View style={s.chips}>
-            {dayOptions.map((key) => (
-              <Chip key={key} label={dayLabel(key, today, true)} selected={key === form.dayKey} onPress={() => update({ dayKey: key })} />
-            ))}
-          </View>
-          <TimeStepper value={form.time} onChange={(time) => update({ time })} minTime={minTime} error={timeError} />
-          <View style={s.hair} />
-          <ToggleRow
-            icon="repeat"
-            title="Repeat every week"
-            subtitle="For your regular commute — we publish each chosen day for the next 7 days."
-            value={form.recurring}
-            onChange={(recurring) => update({ recurring })}
-            testID="recurring-toggle"
-          />
-          {form.recurring ? (
-            <Animated.View entering={FadeInDown.duration(200)} style={s.gap10}>
-              <View style={s.chips}>
-                {WORK_DAYS.map((d) => (
-                  <Chip
-                    key={d}
-                    label={WEEKDAY_SHORT[d]}
-                    selected={form.days.includes(d)}
-                    onPress={() => update({ days: form.days.includes(d) ? form.days.filter((x) => x !== d) : [...form.days, d] })}
-                  />
-                ))}
-              </View>
-              <Text variant="caption">
-                Starting {onDayPhrase(dayText).replace(/^on /, '')} at {form.time}. Each day still counts towards the
-                two-trip limit.
-              </Text>
-            </Animated.View>
-          ) : null}
-        </Card>
-        <Card style={s.meterCard} testID="publish-meter">
-          {meter.data ? (
-            <TwoTripMeter used={meter.data.used} limit={meter.data.limit} dayLabel={onDayPhrase(dayText)} />
-          ) : (
-            <Text variant="caption">{meter.isError ? "Couldn't check your trips for that day." : 'Checking your trips for that day…'}</Text>
-          )}
-          {blockedByMeter ? (
-            <View style={s.limitNote} testID="meter-blocked">
-              <Icon name="information-circle" size={16} color="accentInk" />
-              <Text variant="caption" color="accentInk" style={s.flex}>
-                You already have {meter.data?.used} trips {onDayPhrase(dayText)}. Take Me Home is for trips you already make — up to two a day, one out and one back. Pick another day.
-              </Text>
+        {/* 1 · Car */}
+        <Step n={1} title="Your car">
+          {vehicles.length > 1 ? (
+            <View style={s.vehicleList}>
+              {vehicles.map((v) => (
+                <VehicleOption key={v.id} vehicle={v} selected={v.id === vehicle.id} onPress={() => update({ vehicleId: v.id })} />
+              ))}
             </View>
           ) : (
-            <Text variant="caption">Up to two trips a day — one out, one back.</Text>
+            <VehicleOption vehicle={vehicle} selected />
           )}
-        </Card>
-      </Step>
-
-      {/* 4 · Seats & who can join */}
-      <Step n={4} title="Seats & who can join">
-        <Card style={s.gap14}>
-          <View style={s.seatsRow}>
-            <View style={s.flex}>
-              <Text variant="bodyStrong">Empty seats to offer</Text>
-              <Text variant="caption">
-                Your {vehicle.make} {vehicle.model} has room for {maxSeats} passenger{maxSeats === 1 ? '' : 's'}.
-              </Text>
-            </View>
-            <NumberStepper value={seats} min={1} max={maxSeats} onChange={(n) => update({ seats: n })} testID="seats" />
-          </View>
-          <View style={s.hair} />
-          <ToggleRow
-            icon="female"
-            title="Women only"
-            subtitle={
-              canWomenOnly
-                ? 'Only women passengers can see and request this trip.'
-                : 'Only women drivers can offer women-only trips. Set your gender in Profile to turn this on.'
-            }
-            value={womenOnly}
-            onChange={(v) => update({ womenOnly: v })}
-            disabled={!canWomenOnly}
-            testID="women-only-toggle"
-          />
-          <View style={s.hair} />
-          <View style={s.evRow}>
-            <View style={[s.evIcon, isEV ? s.evIconOn : null]}>
-              <Icon name="flash" size={18} color={isEV ? 'accentInk' : 'ink3'} />
-            </View>
-            <View style={s.flex}>
-              <View style={s.evTitle}>
-                <Text variant="bodyStrong">{isEV ? 'Electric / hybrid' : 'Petrol or diesel'}</Text>
-                {isEV ? <Badge kind="ev" /> : null}
-              </View>
-              <Text variant="caption">
-                {isEV
-                  ? `Your ${vehicle.make} is electric — passengers pay a lower RWF ${BOOKING_FEE_EV} booking fee.`
-                  : `Passengers pay the standard RWF ${BOOKING_FEE} booking fee. EV & hybrid trips get a lower RWF ${BOOKING_FEE_EV} fee.`}
-              </Text>
-            </View>
-          </View>
-        </Card>
-      </Step>
-
-      {/* 5 · Contribution preview */}
-      {corridor.length >= 2 && totalKm > 0 ? (
-        <Step n={5} title="What passengers contribute" subtitle="Set by the cost-sharing formula — drivers can't set prices.">
-          <PricePreview corridor={corridor} nameOf={placeName} seatsOffered={seats} isEV={isEV} />
+          <Pressable onPress={() => router.push('/vehicle/new')} hitSlop={6} style={s.addCar}>
+            <Icon name="add-circle-outline" size={16} color="primary" />
+            <Text variant="caption" color="primary" style={s.link}>
+              Add another car
+            </Text>
+          </Pressable>
         </Step>
-      ) : null}
 
-      {publish.error ? <PublishError error={publish.error} /> : null}
+        {/* 2 · Route */}
+        <Step n={2} title="Your route" subtitle="Where you're going anyway. We suggest the stops along the way.">
+          <Card padding={0}>
+            <View style={s.endpoints}>
+              <View style={s.endpointRail}>
+                <View style={s.dotFrom} />
+                <View style={s.endpointLine} />
+                <View style={s.dotTo} />
+              </View>
+              <View style={s.flex}>
+                <EndpointRow label="From" placeId={form.from} placeholder="Where do you start?" onPress={() => setSheet('from')} testID="pick-from" />
+                <View style={s.hair} />
+                <EndpointRow label="To" placeId={form.to} placeholder="Where are you going?" onPress={() => setSheet('to')} testID="pick-to" />
+              </View>
+              <Pressable
+                onPress={() => {
+                  hapticTap();
+                  update({
+                    from: form.to,
+                    to: form.from,
+                    vias: [],
+                    skipped: [],
+                  });
+                }}
+                disabled={!form.from && !form.to}
+                accessibilityRole="button"
+                accessibilityLabel="Swap from and to"
+                style={({ pressed }) => [s.swap, pressed ? s.pressed : null]}
+                testID="swap"
+              >
+                <Icon name="swap-vertical" size={20} color="primary" />
+              </Pressable>
+            </View>
 
-      <View style={s.submit}>
-        <Button
-          label={form.recurring ? 'Publish recurring trip' : 'Publish trip'}
-          icon="paper-plane"
-          size="lg"
-          block
-          disabled={Boolean(missing)}
-          loading={publish.isPending}
-          onPress={submit}
-          testID="publish-submit"
+            {form.from && form.to && !suggestion ? (
+              <View style={s.routeError}>
+                <Icon name="alert-circle-outline" size={16} color="coral" />
+                <Text variant="caption" color="coral" style={s.flex}>
+                  We couldn&apos;t route through those stops without doubling back. Remove a via stop.
+                </Text>
+              </View>
+            ) : null}
+
+            {suggestion ? (
+              <Animated.View entering={FadeIn.duration(250)} style={s.corridor} testID="corridor">
+                <TripMap
+                  routeStops={served.map((id) => KIGALI_PLACES.find((p) => p.id === id)!)}
+                  boardPlaceId={form.from ?? undefined}
+                  alightPlaceId={form.to ?? undefined}
+                  height={190}
+                  interactive={false}
+                />
+                <View style={s.corridorBody}>
+                  <View style={s.corridorHead}>
+                    <Text variant="label">Stops on your route</Text>
+                    <Text variant="caption" color="ink">
+                      {formatKm(totalKm)} · {served.length} stops
+                    </Text>
+                  </View>
+                  <Text variant="caption">Turn off stops where you won&apos;t pick up or drop off.</Text>
+                  <View>
+                    {route.map((id, i) => {
+                      const endpoint = i === 0 || i === route.length - 1;
+                      const isVia = form.vias.includes(id);
+                      const on = endpoint || !form.skipped.includes(id);
+                      const km = routeKm.find((c) => c.placeId === id)?.cumulativeKm ?? 0;
+                      return (
+                        <Animated.View key={id} layout={LinearTransition} entering={FadeInDown.duration(200)}>
+                          <CorridorRow
+                            id={id}
+                            first={i === 0}
+                            last={i === route.length - 1}
+                            km={km}
+                            on={on}
+                            endpoint={endpoint}
+                            via={isVia}
+                            onToggle={() =>
+                              update({
+                                skipped: on ? [...form.skipped, id] : form.skipped.filter((x) => x !== id),
+                              })
+                            }
+                            onRemoveVia={() =>
+                              update({
+                                vias: form.vias.filter((x) => x !== id),
+                                skipped: form.skipped.filter((x) => x !== id),
+                              })
+                            }
+                          />
+                        </Animated.View>
+                      );
+                    })}
+                  </View>
+                  {suggestion.nearby.length ? (
+                    <View style={s.viaBlock}>
+                      <Text variant="caption" color="ink" style={s.semi}>
+                        Add a via stop
+                      </Text>
+                      <View style={s.chips}>
+                        {[...suggestion.nearby]
+                          .sort((a, b) => placeName(a).localeCompare(placeName(b)))
+                          .map((id) => (
+                            <Chip
+                              key={id}
+                              label={placeName(id)}
+                              icon="add"
+                              onPress={() => {
+                                const next = [...form.vias, id];
+                                if (!suggestCorridor(form.from!, form.to!, next)) {
+                                  toast.error(`Can't go via ${placeName(id)}`, 'That would double back on your route.');
+                                  return;
+                                }
+                                hapticTap();
+                                update({ vias: next });
+                              }}
+                            />
+                          ))}
+                      </View>
+                    </View>
+                  ) : null}
+                </View>
+              </Animated.View>
+            ) : null}
+          </Card>
+        </Step>
+
+        {/* 3 · When */}
+        <Step n={3} title="When you leave">
+          <Card style={s.gap14}>
+            <View style={s.chips}>
+              {dayOptions.map((key) => (
+                <Chip key={key} label={dayLabel(key, today, true)} selected={key === form.dayKey} onPress={() => update({ dayKey: key })} />
+              ))}
+            </View>
+            <TimeStepper value={form.time} onChange={(time) => update({ time })} minTime={minTime} error={timeError} />
+            <View style={s.hair} />
+            <ToggleRow
+              icon="repeat"
+              title="Repeat every week"
+              subtitle="For your regular commute — we publish each chosen day for the next 7 days."
+              value={form.recurring}
+              onChange={(recurring) => update({ recurring })}
+              testID="recurring-toggle"
+            />
+            {form.recurring ? (
+              <Animated.View entering={FadeInDown.duration(200)} style={s.gap10}>
+                <View style={s.chips}>
+                  {WORK_DAYS.map((d) => (
+                    <Chip
+                      key={d}
+                      label={WEEKDAY_SHORT[d]}
+                      selected={form.days.includes(d)}
+                      onPress={() =>
+                        update({
+                          days: form.days.includes(d) ? form.days.filter((x) => x !== d) : [...form.days, d],
+                        })
+                      }
+                    />
+                  ))}
+                </View>
+                <Text variant="caption">
+                  Starting {onDayPhrase(dayText).replace(/^on /, '')} at {form.time}. Each day still counts towards the two-trip limit.
+                </Text>
+              </Animated.View>
+            ) : null}
+          </Card>
+          <Card style={s.meterCard} testID="publish-meter">
+            {meter.data ? (
+              <TwoTripMeter used={meter.data.used} limit={meter.data.limit} dayLabel={onDayPhrase(dayText)} />
+            ) : (
+              <Text variant="caption">{meter.isError ? "Couldn't check your trips for that day." : 'Checking your trips for that day…'}</Text>
+            )}
+            {blockedByMeter ? (
+              <View style={s.limitNote} testID="meter-blocked">
+                <Icon name="information-circle" size={16} color="accentInk" />
+                <Text variant="caption" color="accentInk" style={s.flex}>
+                  You already have {meter.data?.used} trips {onDayPhrase(dayText)}. Take Me Home is for trips you already make — up to two a day, one out and
+                  one back. Pick another day.
+                </Text>
+              </View>
+            ) : (
+              <Text variant="caption">Up to two trips a day — one out, one back.</Text>
+            )}
+          </Card>
+        </Step>
+
+        {/* 4 · Seats & who can join */}
+        <Step n={4} title="Seats & who can join">
+          <Card style={s.gap14}>
+            <View style={s.seatsRow}>
+              <View style={s.flex}>
+                <Text variant="bodyStrong">Seats to offer</Text>
+                <Text variant="caption">
+                  Up to {maxSeats} in your {vehicle.model}
+                </Text>
+              </View>
+              <NumberStepper value={seats} min={1} max={maxSeats} onChange={(n) => update({ seats: n })} testID="seats" />
+            </View>
+            <View style={s.hair} />
+            <ToggleRow
+              icon="female"
+              title="Women only"
+              subtitle={
+                canWomenOnly
+                  ? 'Only women passengers can see and request this trip.'
+                  : 'Only women drivers can offer women-only trips. Set your gender in Profile to turn this on.'
+              }
+              value={womenOnly}
+              onChange={(v) => update({ womenOnly: v })}
+              disabled={!canWomenOnly}
+              testID="women-only-toggle"
+            />
+            <View style={s.hair} />
+            <View style={s.evRow}>
+              <View style={[s.evIcon, isEV ? s.evIconOn : null]}>
+                <Icon name="flash" size={18} color={isEV ? 'accentInk' : 'ink3'} />
+              </View>
+              <View style={s.flex}>
+                <View style={s.evTitle}>
+                  <Text variant="bodyStrong">{isEV ? 'Electric / hybrid' : 'Petrol or diesel'}</Text>
+                  {isEV ? <Badge kind="ev" /> : null}
+                </View>
+                <Text variant="caption">
+                  {isEV
+                    ? `Your ${vehicle.make} is electric — passengers pay a lower RWF ${BOOKING_FEE_EV} booking fee.`
+                    : `Passengers pay the standard RWF ${BOOKING_FEE} booking fee. EV & hybrid trips get a lower RWF ${BOOKING_FEE_EV} fee.`}
+                </Text>
+              </View>
+            </View>
+          </Card>
+        </Step>
+
+        {/* 5 · Contribution preview */}
+        {corridor.length >= 2 && totalKm > 0 ? (
+          <Step n={5} title="What passengers contribute" subtitle="Set by the cost-sharing formula — drivers can't set prices.">
+            <PricePreview corridor={corridor} nameOf={placeName} seatsOffered={seats} isEV={isEV} />
+          </Step>
+        ) : null}
+
+        {publish.error ? <PublishError error={publish.error} /> : null}
+
+        <View style={s.submit}>
+          <Button
+            label={form.recurring ? 'Publish recurring trip' : 'Publish trip'}
+            icon="paper-plane"
+            size="lg"
+            block
+            disabled={Boolean(missing)}
+            loading={publish.isPending}
+            onPress={submit}
+            testID="publish-submit"
+          />
+          {missing ? (
+            <Text variant="caption" align="center">
+              {missing}
+            </Text>
+          ) : (
+            <Text variant="caption" align="center">
+              {formatDeparture(departure)} · {placeName(served[0]!)} → {placeName(served[served.length - 1]!)} · {seats} seat
+              {seats === 1 ? '' : 's'}
+            </Text>
+          )}
+        </View>
+
+        <PlaceSheet
+          visible={sheet === 'from'}
+          onClose={() => setSheet(null)}
+          title="Where do you start?"
+          selectedId={form.from}
+          disabledId={form.to}
+          onSelect={(p) => update({ from: p.id, vias: [], skipped: [] })}
         />
-        {missing ? (
-          <Text variant="caption" align="center">
-            {missing}
-          </Text>
-        ) : (
-          <Text variant="caption" align="center">
-            {formatDeparture(departure)} · {placeName(served[0]!)} → {placeName(served[served.length - 1]!)} · {seats} seat{seats === 1 ? '' : 's'}
-          </Text>
-        )}
-      </View>
-
-      <PlaceSheet
-        visible={sheet === 'from'}
-        onClose={() => setSheet(null)}
-        title="Where do you start?"
-        selectedId={form.from}
-        disabledId={form.to}
-        onSelect={(p) => update({ from: p.id, vias: [], skipped: [] })}
-      />
-      <PlaceSheet
-        visible={sheet === 'to'}
-        onClose={() => setSheet(null)}
-        title="Where are you going?"
-        selectedId={form.to}
-        disabledId={form.from}
-        onSelect={(p) => update({ to: p.id, vias: [], skipped: [] })}
-      />
+        <PlaceSheet
+          visible={sheet === 'to'}
+          onClose={() => setSheet(null)}
+          title="Where are you going?"
+          selectedId={form.to}
+          disabledId={form.from}
+          onSelect={(p) => update({ to: p.id, vias: [], skipped: [] })}
+        />
+      </Column>
     </Screen>
   );
 }
@@ -603,7 +629,19 @@ function VehicleOption({ vehicle, selected, onPress }: { vehicle: Vehicle; selec
   );
 }
 
-function EndpointRow({ label, placeId, placeholder, onPress, testID }: { label: string; placeId: string | null; placeholder: string; onPress: () => void; testID?: string }) {
+function EndpointRow({
+  label,
+  placeId,
+  placeholder,
+  onPress,
+  testID,
+}: {
+  label: string;
+  placeId: string | null;
+  placeholder: string;
+  onPress: () => void;
+  testID?: string;
+}) {
   const s = useStyles();
   return (
     <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [s.endpoint, pressed ? s.pressed : null]} testID={testID}>
@@ -729,47 +767,201 @@ const useStyles = makeStyles((t) => ({
   noCarEmpty: { paddingTop: 8 },
   step: { marginTop: 24, gap: 12 },
   stepHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  stepNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.colors.primary, alignItems: 'center', justifyContent: 'center' },
-  stepNumText: { fontFamily: t.fonts.heading, fontSize: 14, color: t.colors.onPrimary },
+  stepNum: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: t.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepNumText: {
+    fontFamily: t.fonts.heading,
+    fontSize: 14,
+    color: t.colors.onPrimary,
+  },
   vehicleList: { gap: 10 },
-  vehicle: { flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1.5, borderColor: 'transparent' },
+  vehicle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
   vehicleSelected: { borderColor: t.colors.primary },
-  vehicleBadges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-  addCar: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
-  endpoints: { flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 12, gap: 12 },
-  endpointRail: { alignItems: 'center', alignSelf: 'stretch', paddingVertical: 28 },
-  dotFrom: { width: 14, height: 14, borderRadius: 7, backgroundColor: t.colors.primary, borderWidth: 3, borderColor: t.colors.tint },
-  dotTo: { width: 14, height: 14, borderRadius: 7, backgroundColor: t.colors.accent, borderWidth: 3, borderColor: t.colors.accent2 },
-  endpointLine: { flex: 1, width: 2, backgroundColor: t.colors.line, marginVertical: 4 },
+  vehicleBadges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 6,
+  },
+  addCar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+  },
+  endpoints: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 16,
+    paddingRight: 12,
+    gap: 12,
+  },
+  endpointRail: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    paddingVertical: 28,
+  },
+  dotFrom: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: t.colors.primary,
+    borderWidth: 3,
+    borderColor: t.colors.tint,
+  },
+  dotTo: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: t.colors.accent,
+    borderWidth: 3,
+    borderColor: t.colors.accent2,
+  },
+  endpointLine: {
+    flex: 1,
+    width: 2,
+    backgroundColor: t.colors.line,
+    marginVertical: 4,
+  },
   endpoint: { paddingVertical: 14, gap: 1 },
-  swap: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
-  routeError: { flexDirection: 'row', gap: 8, alignItems: 'center', padding: 16, borderTopWidth: 1, borderTopColor: t.colors.line },
+  swap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: t.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  routeError: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: t.colors.line,
+  },
   corridor: { borderTopWidth: 1, borderTopColor: t.colors.line },
   corridorBody: { padding: 16, gap: 8 },
-  corridorHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  corridorHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   cRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 58 },
-  cRail: { width: 20, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
-  cLine: { position: 'absolute', width: 3, left: 8.5, backgroundColor: t.colors.primary, borderRadius: 2 },
+  cRail: {
+    width: 20,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cLine: {
+    position: 'absolute',
+    width: 3,
+    left: 8.5,
+    backgroundColor: t.colors.primary,
+    borderRadius: 2,
+  },
   cLineTop: { top: 0, bottom: '50%' },
   cLineBottom: { top: '50%', bottom: 0 },
   cDot: { width: 12, height: 12, borderRadius: 6 },
-  cDotFrom: { width: 18, height: 18, borderRadius: 9, backgroundColor: t.colors.primary, borderWidth: 4, borderColor: t.colors.tint },
-  cDotTo: { width: 18, height: 18, borderRadius: 9, backgroundColor: t.colors.accent, borderWidth: 4, borderColor: t.colors.accent2 },
-  cDotOn: { backgroundColor: t.colors.surface, borderWidth: 3, borderColor: t.colors.primary },
-  cDotOff: { backgroundColor: t.colors.surface, borderWidth: 2.5, borderColor: t.colors.line },
+  cDotFrom: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: t.colors.primary,
+    borderWidth: 4,
+    borderColor: t.colors.tint,
+  },
+  cDotTo: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: t.colors.accent,
+    borderWidth: 4,
+    borderColor: t.colors.accent2,
+  },
+  cDotOn: {
+    backgroundColor: t.colors.surface,
+    borderWidth: 3,
+    borderColor: t.colors.primary,
+  },
+  cDotOff: {
+    backgroundColor: t.colors.surface,
+    borderWidth: 2.5,
+    borderColor: t.colors.line,
+  },
   cNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cName: { flexShrink: 1 },
-  lock: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, height: 26, borderRadius: 13, backgroundColor: t.colors.bg },
-  removeVia: { width: 30, height: 30, borderRadius: 15, backgroundColor: t.colors.bg, alignItems: 'center', justifyContent: 'center' },
-  viaBlock: { gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: t.colors.line },
+  lock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: t.colors.bg,
+  },
+  removeVia: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: t.colors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viaBlock: {
+    gap: 8,
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: t.colors.line,
+  },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   meterCard: { gap: 10 },
-  limitNote: { flexDirection: 'row', gap: 8, backgroundColor: t.colors.accent2, borderRadius: t.radius.sm, padding: 12 },
+  limitNote: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: t.colors.accent2,
+    borderRadius: t.radius.sm,
+    padding: 12,
+  },
   seatsRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  evRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4 },
-  evIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.colors.bg, alignItems: 'center', justifyContent: 'center' },
+  evRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 4,
+  },
+  evIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: t.colors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   evIconOn: { backgroundColor: t.colors.accent2 },
   evTitle: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  errorBox: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: t.colors.coralWash, borderRadius: t.radius.md, padding: 14, marginTop: 20 },
+  errorBox: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+    backgroundColor: t.colors.coralWash,
+    borderRadius: t.radius.md,
+    padding: 14,
+    marginTop: 20,
+  },
   submit: { marginTop: 24, gap: 8 },
 }));

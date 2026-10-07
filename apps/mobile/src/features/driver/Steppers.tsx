@@ -99,17 +99,41 @@ export function NumberStepper({ value, min, max, onChange, unit, testID }: Numbe
   const s = useStyles();
   return (
     <View style={s.numRow} testID={testID}>
-      <RoundBtn icon="remove" onPress={() => value > min && (hapticTap(), onChange(value - 1))} disabled={value <= min} label="Fewer" testID={testID ? `${testID}-minus` : undefined} />
+      <RoundBtn
+        icon="remove"
+        onPress={() => value > min && (hapticTap(), onChange(value - 1))}
+        disabled={value <= min}
+        label="Fewer"
+        testID={testID ? `${testID}-minus` : undefined}
+      />
       <View style={s.numReadout}>
         <Text style={s.num}>{value}</Text>
         {unit ? <Text variant="caption">{unit(value)}</Text> : null}
       </View>
-      <RoundBtn icon="add" onPress={() => value < max && (hapticTap(), onChange(value + 1))} disabled={value >= max} label="More" testID={testID ? `${testID}-plus` : undefined} />
+      <RoundBtn
+        icon="add"
+        onPress={() => value < max && (hapticTap(), onChange(value + 1))}
+        disabled={value >= max}
+        label="More"
+        testID={testID ? `${testID}-plus` : undefined}
+      />
     </View>
   );
 }
 
-function RoundBtn({ icon, onPress, disabled, label, testID }: { icon: 'add' | 'remove'; onPress: () => void; disabled?: boolean; label: string; testID?: string }) {
+function RoundBtn({
+  icon,
+  onPress,
+  disabled,
+  label,
+  testID,
+}: {
+  icon: 'add' | 'remove';
+  onPress: () => void;
+  disabled?: boolean;
+  label: string;
+  testID?: string;
+}) {
   const s = useStyles();
   return (
     <Pressable
@@ -140,17 +164,53 @@ const useStyles = makeStyles((t) => ({
   },
   readoutError: { borderColor: t.colors.coral },
   readout: { alignItems: 'center' },
-  time: { fontFamily: t.fonts.headingHeavy, fontSize: 36, lineHeight: 42, color: t.colors.ink, fontVariant: ['tabular-nums'], letterSpacing: -0.5 },
-  round: { width: 48, height: 48, borderRadius: 24, backgroundColor: t.colors.surface, alignItems: 'center', justifyContent: 'center', ...t.shadows.sm },
+  time: {
+    fontFamily: t.fonts.headingHeavy,
+    fontSize: 36,
+    lineHeight: 42,
+    color: t.colors.ink,
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.5,
+  },
+  round: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: t.colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...t.shadows.sm,
+  },
   roundDisabled: { opacity: 0.5 },
   pressed: { opacity: 0.7, transform: [{ scale: 0.96 }] },
   presets: { gap: 8, paddingRight: 8 },
-  preset: { height: 34, paddingHorizontal: 12, borderRadius: t.radius.pill, borderWidth: 1, borderColor: t.colors.line, backgroundColor: t.colors.surface, justifyContent: 'center' },
-  presetSelected: { backgroundColor: t.colors.tint, borderColor: t.colors.primary },
+  preset: {
+    height: 34,
+    paddingHorizontal: 12,
+    borderRadius: t.radius.pill,
+    borderWidth: 1,
+    borderColor: t.colors.line,
+    backgroundColor: t.colors.surface,
+    justifyContent: 'center',
+  },
+  presetSelected: {
+    backgroundColor: t.colors.tint,
+    borderColor: t.colors.primary,
+  },
   presetDisabled: { opacity: 0.35 },
-  presetText: { fontFamily: t.fonts.bodySemiBold, fontSize: 13, color: t.colors.ink2, fontVariant: ['tabular-nums'] },
+  presetText: {
+    fontFamily: t.fonts.bodySemiBold,
+    fontSize: 13,
+    color: t.colors.ink2,
+    fontVariant: ['tabular-nums'],
+  },
   presetTextSelected: { color: t.colors.primary },
   numRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   numReadout: { minWidth: 64, alignItems: 'center' },
-  num: { fontFamily: t.fonts.headingHeavy, fontSize: 30, lineHeight: 36, color: t.colors.ink },
+  num: {
+    fontFamily: t.fonts.headingHeavy,
+    fontSize: 30,
+    lineHeight: 36,
+    color: t.colors.ink,
+  },
 }));

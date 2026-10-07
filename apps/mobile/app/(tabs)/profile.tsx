@@ -25,6 +25,7 @@ import {
   VerificationChips,
   type SegmentedOption,
 } from '@/components';
+import { Column } from '@/features/driver/Column';
 import { hapticNotify } from '@/features/driver/haptics';
 import { usePhotoUpload } from '@/features/driver/media';
 import { PlaceSheet } from '@/features/driver/PlaceSheet';
@@ -68,84 +69,86 @@ export default function ProfileTab() {
 
   return (
     <Screen tabBarSpace testID="profile">
-      <Text variant="h1" style={s.title}>
-        Profile
-      </Text>
-
-      <ProfileHeader me={me} allVerified={allVerified} />
-
-      <Card style={s.card}>
-        <Text variant="label">Mode</Text>
-        <SegmentedControl options={MODES} value={mode} onChange={switchMode} testID="mode-switch" />
-        <Text variant="caption">
-          {mode === 'driver'
-            ? me.vehicles.length
-              ? 'Publish trips you already make and share the running cost.'
-              : "Driver mode is on — add your car on My Trip to publish your first trip."
-            : 'Find a seat on a trip that is already going your way.'}
+      <Column>
+        <Text variant="h1" style={s.title}>
+          Profile
         </Text>
-      </Card>
 
-      <DetailsCard me={me} />
+        <ProfileHeader me={me} allVerified={allVerified} />
 
-      <Text variant="label" style={s.sectionLabel}>
-        My vehicles
-      </Text>
-      <Card style={s.card} testID="my-vehicles">
-        {me.vehicles.length === 0 ? (
-          <View style={s.noCar}>
-            <CarIllustration color="Silver" width={120} shadow={false} />
-            <View style={s.flex}>
-              <Text variant="bodyStrong">No car yet</Text>
-              <Text variant="caption">Add the car you drive to publish trips as a driver.</Text>
-            </View>
-          </View>
-        ) : (
-          me.vehicles.map((v, i) => (
-            <Animated.View key={v.id} entering={FadeIn.duration(200)} style={[s.vehicle, i < me.vehicles.length - 1 ? s.divider : null]}>
-              <CarIllustration color={v.color} width={88} shadow={false} />
+        <Card style={s.card}>
+          <Text variant="label">Mode</Text>
+          <SegmentedControl options={MODES} value={mode} onChange={switchMode} testID="mode-switch" />
+          <Text variant="caption">
+            {mode === 'driver'
+              ? me.vehicles.length
+                ? 'Publish trips you already make and share the running cost.'
+                : 'Driver mode is on — add your car on My Trip to publish your first trip.'
+              : 'Find a seat on a trip that is already going your way.'}
+          </Text>
+        </Card>
+
+        <DetailsCard me={me} />
+
+        <Text variant="label" style={s.sectionLabel}>
+          My vehicles
+        </Text>
+        <Card style={s.card} testID="my-vehicles">
+          {me.vehicles.length === 0 ? (
+            <View style={s.noCar}>
+              <CarIllustration color="Silver" width={120} shadow={false} />
               <View style={s.flex}>
-                <Text variant="bodyStrong" numberOfLines={1}>
-                  {v.make} {v.model}
-                </Text>
-                <Text variant="caption" numberOfLines={1}>
-                  {v.color} · {v.plate} · {v.seats} seats
-                </Text>
-                <View style={s.badges}>
-                  {v.isEV ? <Badge kind="ev" /> : null}
-                  {v.verified ? <Badge kind="success" icon="shield-checkmark" label="Verified" /> : <Badge kind="neutral" label="Not verified" />}
-                </View>
+                <Text variant="bodyStrong">No car yet</Text>
+                <Text variant="caption">Add the car you drive to publish trips as a driver.</Text>
               </View>
-            </Animated.View>
-          ))
-        )}
-        <Button label="Add vehicle" icon="add" variant="secondary" block onPress={() => router.push('/vehicle/new')} testID="profile-add-vehicle" />
-      </Card>
+            </View>
+          ) : (
+            me.vehicles.map((v, i) => (
+              <Animated.View key={v.id} entering={FadeIn.duration(200)} style={[s.vehicle, i < me.vehicles.length - 1 ? s.divider : null]}>
+                <CarIllustration color={v.color} width={88} shadow={false} />
+                <View style={s.flex}>
+                  <Text variant="bodyStrong" numberOfLines={1}>
+                    {v.make} {v.model}
+                  </Text>
+                  <Text variant="caption" numberOfLines={1}>
+                    {v.color} · {v.plate} · {v.seats} seats
+                  </Text>
+                  <View style={s.badges}>
+                    {v.isEV ? <Badge kind="ev" /> : null}
+                    {v.verified ? <Badge kind="success" icon="shield-checkmark" label="Verified" /> : <Badge kind="neutral" label="Not verified" />}
+                  </View>
+                </View>
+              </Animated.View>
+            ))
+          )}
+          <Button label="Add vehicle" icon="add" variant="secondary" block onPress={() => router.push('/vehicle/new')} testID="profile-add-vehicle" />
+        </Card>
 
-      <Card style={s.card} padding={8}>
-        <View style={s.list}>
-          <ListRow
-            icon="notifications"
-            title="Notifications"
-            subtitle={unread ? `${unread} unread` : 'Requests, payments and trip updates'}
-            onPress={() => router.push('/notifications')}
-            divider
-          />
-          <ListRow icon="time" title="Trip history" subtitle="Past trips as driver and passenger" onPress={() => router.push('/history')} divider />
-          <ListRow icon="ban" title="Blocked users" onPress={() => router.push('/blocked')} divider />
-          <ListRow
-            icon="shield-checkmark"
-            iconColor="success"
-            title="Verification"
-            subtitle={allVerified ? 'Everything is verified' : 'Email, ID, licence and vehicle'}
-            onPress={() => router.push('/verify')}
-            divider
-          />
-          <ListRow icon="flag" iconColor="coral" title="Report a problem" onPress={() => router.push('/report')} />
-        </View>
-      </Card>
+        <Card style={s.card} padding={8}>
+          <View style={s.list}>
+            <ListRow
+              icon="notifications"
+              title="Notifications"
+              subtitle={unread ? `${unread} unread` : 'Requests, payments and trip updates'}
+              onPress={() => router.push('/notifications')}
+              divider
+            />
+            <ListRow icon="time" title="Trip history" subtitle="Past trips as driver and passenger" onPress={() => router.push('/history')} divider />
+            <ListRow icon="ban" title="Blocked users" onPress={() => router.push('/blocked')} divider />
+            <ListRow
+              icon="shield-checkmark"
+              iconColor="success"
+              title="Verification"
+              subtitle={allVerified ? 'Everything is verified' : 'Email, ID, licence and vehicle'}
+              onPress={() => router.push('/verify')}
+              divider
+            />
+            <ListRow icon="flag" iconColor="coral" title="Report a problem" onPress={() => router.push('/report')} />
+          </View>
+        </Card>
 
-      <Button label="Sign out" variant="ghost" icon="log-out-outline" onPress={() => void signOut()} style={s.signOut} testID="sign-out" />
+        <Button label="Sign out" variant="ghost" icon="log-out-outline" onPress={() => void signOut()} style={s.signOut} testID="sign-out" />
+      </Column>
     </Screen>
   );
 }
@@ -179,9 +182,17 @@ function ProfileHeader({ me, allVerified }: { me: Me; allVerified: boolean }) {
   return (
     <Card style={s.card}>
       <View style={s.who}>
-        <Pressable onPress={() => void changePhoto()} disabled={busy} accessibilityRole="button" accessibilityLabel="Change profile photo" testID="change-photo">
+        <Pressable
+          onPress={() => void changePhoto()}
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel="Change profile photo"
+          testID="change-photo"
+        >
           <Avatar name={me.name} photoUrl={me.photoUrl} size={76} />
-          <View style={s.camera}>{busy ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Icon name="camera" size={14} color="onPrimary" />}</View>
+          <View style={s.camera}>
+            {busy ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Icon name="camera" size={14} color="onPrimary" />}
+          </View>
         </Pressable>
         <View style={s.whoText}>
           <Text variant="h2" numberOfLines={1}>
@@ -253,7 +264,12 @@ function DetailsCard({ me }: { me: Me }) {
           <Text variant="caption" color="ink" style={s.label}>
             Home area
           </Text>
-          <Pressable onPress={() => setSheet(true)} accessibilityRole="button" style={({ pressed }) => [s.picker, pressed ? s.pressed : null]} testID="profile-home-area">
+          <Pressable
+            onPress={() => setSheet(true)}
+            accessibilityRole="button"
+            style={({ pressed }) => [s.picker, pressed ? s.pressed : null]}
+            testID="profile-home-area"
+          >
             <Icon name="home-outline" size={18} color="ink2" />
             <Text variant="body" color={homeArea ? 'ink' : 'ink3'} style={s.flex}>
               {homeArea ?? 'Choose your area'}
@@ -277,11 +293,27 @@ function DetailsCard({ me }: { me: Me }) {
           </View>
         </View>
 
-        <PhoneInput label="Trusted contact" value={contact} onChangeText={setContact} hint="We'll text them if you press SOS" error={contactError} autoFocus={false} testID="profile-contact" />
+        <PhoneInput
+          label="Trusted contact"
+          value={contact}
+          onChangeText={setContact}
+          hint="We'll text them if you press SOS"
+          error={contactError}
+          autoFocus={false}
+          testID="profile-contact"
+        />
 
         {dirty ? (
           <Animated.View entering={FadeInDown.duration(200)}>
-            <Button label="Save changes" icon="checkmark" block loading={updateMe.isPending} disabled={Boolean(nameError || contactError)} onPress={save} testID="profile-save" />
+            <Button
+              label="Save changes"
+              icon="checkmark"
+              block
+              loading={updateMe.isPending}
+              disabled={Boolean(nameError || contactError)}
+              onPress={save}
+              testID="profile-save"
+            />
           </Animated.View>
         ) : null}
       </Card>
@@ -323,7 +355,12 @@ const useStyles = makeStyles((t) => ({
   list: { paddingHorizontal: 8 },
   signOut: { alignSelf: 'center' },
   noCar: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  vehicle: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingBottom: 14 },
+  vehicle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingBottom: 14,
+  },
   divider: { borderBottomWidth: 1, borderBottomColor: t.colors.line },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
   field: { gap: 10 },

@@ -40,7 +40,10 @@ export function TripActions({ trip, onCompleted, onCancelled }: TripActionsProps
       onSuccess: () => {
         hapticNotify('success');
         close();
-        toast.success('Trip started', paid.length ? `We've told ${paid.length === 1 ? 'your passenger' : `your ${paid.length} passengers`} you're on the way.` : 'Drive safe!');
+        toast.success(
+          'Trip started',
+          paid.length ? `We've told ${paid.length === 1 ? 'your passenger' : `your ${paid.length} passengers`} you're on the way.` : 'Drive safe!',
+        );
       },
       onError: (e) => toast.error("Couldn't start the trip", errorMessage(e)),
     });
@@ -50,7 +53,10 @@ export function TripActions({ trip, onCompleted, onCancelled }: TripActionsProps
       onSuccess: (done) => {
         hapticNotify('success');
         close();
-        toast.success('Trip completed', done.ledger ? `${formatRwf(done.ledger.recovered)} recovered towards your ${formatRwf(done.ledger.tripCost)} running cost.` : undefined);
+        toast.success(
+          'Trip completed',
+          done.ledger ? `${formatRwf(done.ledger.recovered)} recovered towards your ${formatRwf(done.ledger.tripCost)} running cost.` : undefined,
+        );
         onCompleted?.(done);
       },
       onError: (e) => toast.error("Couldn't complete the trip", errorMessage(e)),
@@ -61,7 +67,10 @@ export function TripActions({ trip, onCompleted, onCancelled }: TripActionsProps
       onSuccess: (done) => {
         hapticNotify('warning');
         close();
-        toast.show({ title: 'Trip cancelled', message: paid.length ? 'Paid passengers are being refunded in full.' : undefined });
+        toast.show({
+          title: 'Trip cancelled',
+          message: paid.length ? 'Paid passengers are being refunded in full.' : undefined,
+        });
         onCancelled?.(done);
       },
       onError: (e) => toast.error("Couldn't cancel the trip", errorMessage(e)),
@@ -168,8 +177,28 @@ function Note({ icon, children }: { icon: 'time' | 'return-down-back'; children:
 
 const useStyles = makeStyles((t) => ({
   wrap: { gap: 6 },
-  live: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingBottom: 6 },
-  liveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: t.colors.success, borderWidth: 3, borderColor: t.colors.mint },
-  note: { flexDirection: 'row', gap: 8, backgroundColor: t.colors.accent2, borderRadius: t.radius.sm, padding: 12, marginTop: 4 },
+  live: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingBottom: 6,
+  },
+  liveDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: t.colors.success,
+    borderWidth: 3,
+    borderColor: t.colors.mint,
+  },
+  note: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: t.colors.accent2,
+    borderRadius: t.radius.sm,
+    padding: 12,
+    marginTop: 4,
+  },
   noteText: { flex: 1 },
 }));

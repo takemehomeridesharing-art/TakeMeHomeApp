@@ -73,7 +73,14 @@ export function passengerRows(trip: TripDetail): Row[] {
   return [...paid, ...awaiting];
 }
 
-const STATE_BADGE: Record<Row['state'], { kind: 'success' | 'warning' | 'primary' | 'danger' | 'neutral'; label: string; icon: 'checkmark-circle' | 'time' | 'phone-portrait' | 'flag' | 'return-down-back' | 'checkmark-done' }> = {
+const STATE_BADGE: Record<
+  Row['state'],
+  {
+    kind: 'success' | 'warning' | 'primary' | 'danger' | 'neutral';
+    label: string;
+    icon: 'checkmark-circle' | 'time' | 'phone-portrait' | 'flag' | 'return-down-back' | 'checkmark-done';
+  }
+> = {
   paid: { kind: 'success', label: 'Paid', icon: 'checkmark-circle' },
   paying: { kind: 'primary', label: 'Paying now…', icon: 'phone-portrait' },
   awaiting: { kind: 'warning', label: 'Awaiting payment', icon: 'time' },
@@ -102,7 +109,7 @@ function PassengerRow({ row, trip, divider }: { row: Row; trip: TripDetail; divi
           </Text>
           <View style={s.boardRow}>
             <Icon name="location" size={13} color="primary" />
-            <Text variant="caption" numberOfLines={1} style={s.flex}>
+            <Text variant="caption" numberOfLines={2} style={s.flex}>
               Boards at {row.board} → {row.alight}
             </Text>
           </View>
@@ -131,8 +138,12 @@ function PassengerRow({ row, trip, divider }: { row: Row; trip: TripDetail; divi
             {b && b.status === 'confirmed' ? (
               <Button label="Message" size="sm" variant="ghost" icon="chatbubble-ellipses-outline" onPress={() => router.push(`/chat/${b.bookingId}`)} />
             ) : null}
-            {canNoShow ? <Button label="No-show" size="sm" variant="secondary" icon="flag-outline" onPress={() => setConfirmNoShow(true)} testID={`no-show-${row.key}`} /> : null}
-            {canRate ? <Button label="Rate passenger" size="sm" icon="star" onPress={() => router.push(`/rate/${b!.bookingId}`)} testID={`rate-${row.key}`} /> : null}
+            {canNoShow ? (
+              <Button label="No-show" size="sm" variant="secondary" icon="flag-outline" onPress={() => setConfirmNoShow(true)} testID={`no-show-${row.key}`} />
+            ) : null}
+            {canRate ? (
+              <Button label="Rate passenger" size="sm" icon="star" onPress={() => router.push(`/rate/${b!.bookingId}`)} testID={`rate-${row.key}`} />
+            ) : null}
             {b && trip.status === 'completed' && b.driverRated ? <Badge kind="neutral" icon="star" label="Rated" /> : null}
           </View>
         </View>
@@ -173,10 +184,34 @@ const useStyles = makeStyles((t) => ({
   flex: { flex: 1 },
   right: { alignItems: 'flex-end', gap: 4 },
   money: { fontSize: 16, lineHeight: 20 },
-  footer: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 56 },
-  code: { flex: 1, gap: 0 },
-  codeText: { fontFamily: t.fonts.heading, fontSize: 15, letterSpacing: 1, color: t.colors.ink },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' },
-  empty: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+  footer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: 10,
+    rowGap: 8,
+    paddingLeft: 56,
+  },
+  code: { flexGrow: 1, minWidth: 96, gap: 0 },
+  codeText: {
+    fontFamily: t.fonts.heading,
+    fontSize: 15,
+    letterSpacing: 1,
+    color: t.colors.ink,
+    flexShrink: 0,
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    justifyContent: 'flex-end',
+    flexGrow: 1,
+  },
+  empty: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+  },
   emptyText: { flex: 1 },
 }));

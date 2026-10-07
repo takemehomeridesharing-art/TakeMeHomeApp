@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { RefreshControl, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Badge, Button, Card, EmptyState, ErrorState, Icon, ListRow, LoadingState, Screen, Text } from '@/components';
+import { Badge, Card, EmptyState, ErrorState, Icon, ListRow, LoadingState, Screen, Text } from '@/components';
 import { DriverTripsList } from '@/features/driver/DriverTripsList';
 import { CarVisual } from '@/features/passenger/CarVisual';
 import { firstName, REQUEST_STATUS } from '@/features/passenger/labels';
@@ -139,7 +139,12 @@ function UpcomingCard({ booking: b, index }: { booking: Booking; index: number }
   const live = b.trip.status === 'in_progress';
   return (
     <Animated.View entering={FadeInDown.delay(index * 50).duration(260)}>
-      <Card padding={0} style={s.card} onPress={() => router.push({ pathname: '/booking/[id]', params: { id: b.id } })} testID={`upcoming-${index}`}>
+      <Card
+        padding={0}
+        style={s.card}
+        onPress={() => (live ? router.push({ pathname: '/track/[bookingId]', params: { bookingId: b.id } }) : router.push({ pathname: '/booking/[id]', params: { id: b.id } }))}
+        testID={`upcoming-${index}`}
+      >
         <View style={s.cardTop}>
           <View style={s.timeCol}>
             <Text variant="label">{formatDay(b.trip.departureTime)}</Text>
@@ -165,7 +170,7 @@ function UpcomingCard({ booking: b, index }: { booking: Booking; index: number }
           {live ? <Badge kind="success" icon="navigate" label="On the way" /> : <Badge kind="success" icon="checkmark-circle" label="Confirmed" />}
           <View style={s.flex} />
           {live ? (
-            <Button label="Track" size="sm" icon="navigate" onPress={() => router.push({ pathname: '/track/[bookingId]', params: { bookingId: b.id } })} />
+            <ActionPill icon="navigate" label="Track" />
           ) : (
             <Text style={s.paid}>{formatRwf(b.total)}</Text>
           )}
@@ -181,7 +186,11 @@ function RequestCard({ item, index }: { item: PassengerRequestItem; index: numbe
   const accepted = jr.status === 'accepted';
   return (
     <Animated.View entering={FadeInDown.delay(index * 50).duration(260)}>
-      <Card style={[s.card, s.requestCard, accepted ? s.acceptedCard : null]} onPress={() => router.push({ pathname: '/request/[id]', params: { id: jr.id } })} testID={`request-${index}`}>
+      <Card
+        style={[s.card, s.requestCard, accepted ? s.acceptedCard : null]}
+        onPress={() => (accepted ? router.push({ pathname: '/pay/[requestId]', params: { requestId: jr.id } }) : router.push({ pathname: '/request/[id]', params: { id: jr.id } }))}
+        testID={`request-${index}`}
+      >
         <View style={s.flex}>
           <Badge kind={REQUEST_STATUS[jr.status].badge} label={accepted ? 'Accepted — pay to confirm' : `Waiting for ${firstName(trip.driver.name)}`} icon={accepted ? 'checkmark-circle' : 'time'} />
           <Text variant="bodyStrong" style={s.requestRoute} numberOfLines={1}>
@@ -192,7 +201,7 @@ function RequestCard({ item, index }: { item: PassengerRequestItem; index: numbe
           </Text>
         </View>
         {accepted ? (
-          <Button label="Pay" size="sm" icon="phone-portrait-outline" onPress={() => router.push({ pathname: '/pay/[requestId]', params: { requestId: jr.id } })} />
+          <ActionPill icon="phone-portrait-outline" label="Pay" />
         ) : (
           <Icon name="chevron-forward" size={18} color="ink3" />
         )}
@@ -201,7 +210,22 @@ function RequestCard({ item, index }: { item: PassengerRequestItem; index: numbe
   );
 }
 
+/** Looks like a small primary button; the whole card is the touch target (no nested buttons). */
+function ActionPill({ icon, label }: { icon: 'navigate' | 'phone-portrait-outline'; label: string }) {
+  const s = useStyles();
+  return (
+    <View style={s.pill}>
+      <Icon name={icon} size={15} color="onPrimary" />
+      <Text variant="bodyStrong" style={s.pillText}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
 const useStyles = makeStyles((t) => ({
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 14, borderRadius: t.radius.pill, backgroundColor: t.colors.primary, ...t.shadows.primary },
+  pillText: { color: t.colors.onPrimary, fontSize: 14 },
   flex: { flex: 1 },
   intro: { marginTop: 12, marginBottom: 18, gap: 2 },
   section: { marginBottom: 22 },

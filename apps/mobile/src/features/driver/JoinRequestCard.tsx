@@ -1,7 +1,16 @@
 import { formatKm, formatRwf, type JoinRequest } from '@tmh/shared';
 import { useEffect } from 'react';
 import { View } from 'react-native';
-import Animated, { FadeInDown, FadeOutUp, interpolateColor, LinearTransition, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  FadeOutUp,
+  interpolateColor,
+  LinearTransition,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { Avatar, Badge, Button, Icon, Stars, Text, toast, VerificationChips } from '@/components';
 import { errorMessage } from '@/lib/api';
 import { formatRelative } from '@/lib/format';
@@ -27,7 +36,9 @@ export function JoinRequestCard({ request }: { request: JoinRequest }) {
     if (isNew) glow.value = withSequence(withTiming(1, { duration: 200 }), withTiming(0, { duration: 2400 }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const glowStyle = useAnimatedStyle(() => ({ borderColor: interpolateColor(glow.value, [0, 1], [colors.line, colors.accent]) }));
+  const glowStyle = useAnimatedStyle(() => ({
+    borderColor: interpolateColor(glow.value, [0, 1], [colors.line, colors.accent]),
+  }));
 
   const onAccept = () =>
     accept.mutate(request.id, {
@@ -45,7 +56,10 @@ export function JoinRequestCard({ request }: { request: JoinRequest }) {
     decline.mutate(request.id, {
       onSuccess: () => {
         hapticNotify('warning');
-        toast.show({ title: 'Request declined', message: `We'll let ${firstName} know and help them find another ride.` });
+        toast.show({
+          title: 'Request declined',
+          message: `We'll let ${firstName} know and help them find another ride.`,
+        });
       },
       onError: (e) => toast.error("Couldn't decline", errorMessage(e)),
     });
@@ -127,7 +141,12 @@ const useStyles = makeStyles((t) => ({
   who: { flex: 1, gap: 2 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   name: { flexShrink: 1 },
-  segment: { backgroundColor: t.colors.bg, borderRadius: t.radius.sm, padding: 12, gap: 2 },
+  segment: {
+    backgroundColor: t.colors.bg,
+    borderRadius: t.radius.sm,
+    padding: 12,
+    gap: 2,
+  },
   segmentTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   flex: { flex: 1 },
   amountRow: {

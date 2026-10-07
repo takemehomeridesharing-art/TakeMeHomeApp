@@ -24,7 +24,14 @@ export function ToggleRow({ title, subtitle, icon, value, onChange, disabled, te
     onChange(!value);
   };
   return (
-    <Pressable onPress={toggle} disabled={disabled} accessibilityRole="switch" accessibilityState={{ checked: value, disabled }} style={[s.row, disabled ? s.disabled : null]} testID={testID}>
+    <Pressable
+      onPress={toggle}
+      disabled={disabled}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value, disabled }}
+      style={[s.row, disabled ? s.disabled : null]}
+      testID={testID}
+    >
       {icon ? (
         <View style={[s.icon, value ? s.iconOn : null]}>
           <Icon name={icon} size={18} color={value ? 'onPrimary' : 'primary'} />
@@ -47,9 +54,21 @@ export function ToggleRow({ title, subtitle, icon, value, onChange, disabled, te
 }
 
 const useStyles = makeStyles((t) => ({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 6,
+  },
   disabled: { opacity: 0.55 },
-  icon: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
+  icon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: t.colors.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   iconOn: { backgroundColor: t.colors.primary },
   texts: { flex: 1, gap: 2 },
 }));
