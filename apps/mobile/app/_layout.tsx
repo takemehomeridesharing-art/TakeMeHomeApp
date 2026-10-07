@@ -1,10 +1,10 @@
-import { Archivo_700Bold, Archivo_800ExtraBold } from '@expo-google-fonts/archivo';
-import {
-  PublicSans_400Regular,
-  PublicSans_500Medium,
-  PublicSans_600SemiBold,
-  PublicSans_700Bold,
-} from '@expo-google-fonts/public-sans';
+// Per-weight subpath imports so only the weights we use are bundled.
+import { Archivo_700Bold } from '@expo-google-fonts/archivo/700Bold';
+import { Archivo_800ExtraBold } from '@expo-google-fonts/archivo/800ExtraBold';
+import { PublicSans_400Regular } from '@expo-google-fonts/public-sans/400Regular';
+import { PublicSans_500Medium } from '@expo-google-fonts/public-sans/500Medium';
+import { PublicSans_600SemiBold } from '@expo-google-fonts/public-sans/600SemiBold';
+import { PublicSans_700Bold } from '@expo-google-fonts/public-sans/700Bold';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';

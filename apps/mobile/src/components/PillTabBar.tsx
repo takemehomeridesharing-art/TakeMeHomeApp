@@ -22,7 +22,7 @@ export function PillTabBar({ state, descriptors, navigation }: BottomTabBarProps
   });
 
   return (
-    <View pointerEvents="box-none" style={[s.wrap, { bottom: Math.max(insets.bottom, 12) + 4 }]}>
+    <View style={[s.wrap, s.boxNone, { bottom: Math.max(insets.bottom, 12) + 4 }]}>
       <View style={s.bar} accessibilityRole="tablist">
         {visible.map((route) => {
           const options = descriptors[route.key]!.options;
@@ -66,6 +66,7 @@ export function PillTabBar({ state, descriptors, navigation }: BottomTabBarProps
 
 const useStyles = makeStyles((t) => ({
   wrap: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
+  boxNone: { pointerEvents: 'box-none' },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',

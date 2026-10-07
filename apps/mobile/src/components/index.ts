@@ -27,3 +27,4 @@ export { TwoTripMeter, type TwoTripMeterProps } from './TwoTripMeter';
 export { VerificationChips, type VerificationChipsProps, type VerificationKey } from './VerificationChips';
 export { ListRow, type ListRowProps } from './ListRow';
 export { SegmentedControl, type SegmentedControlProps, type SegmentedOption } from './SegmentedControl';
+export { Wordmark, type WordmarkProps } from './Wordmark';

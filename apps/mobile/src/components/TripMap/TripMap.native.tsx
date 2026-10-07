@@ -84,7 +84,7 @@ export const TripMap: TripMapComponent = function TripMap({
           </Marker>
         ))}
       </MapView>
-      <View style={s.attribution} pointerEvents="none">
+      <View style={[s.attribution, s.noPointer]}>
         <Text style={s.attributionText}>© OpenStreetMap</Text>
       </View>
     </View>
@@ -154,5 +154,6 @@ const useStyles = makeStyles((t) => ({
     marginTop: -1,
   },
   attribution: { position: 'absolute', right: 6, bottom: 4, backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: 4, paddingHorizontal: 4 },
+  noPointer: { pointerEvents: 'none' },
   attributionText: { fontSize: 9, color: t.colors.ink2 },
 }));

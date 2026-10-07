@@ -68,7 +68,7 @@ export function ToastHost() {
   const hide = useToastStore((st) => st.hide);
   if (toasts.length === 0) return null;
   return (
-    <View pointerEvents="box-none" style={[s.host, { top: insets.top + 8 }]}>
+    <View style={[s.host, s.boxNone, { top: insets.top + 8 }]}>
       {toasts.map((t) => {
         const tone = TONE[t.tone ?? 'info'];
         return (
@@ -105,6 +105,7 @@ export function ToastHost() {
 
 const useStyles = makeStyles((t) => ({
   host: { position: 'absolute', left: 12, right: 12, alignItems: 'center', gap: 8, zIndex: 1000, ...(Platform.OS === 'web' ? { position: 'fixed' as 'absolute' } : null) },
+  boxNone: { pointerEvents: 'box-none' },
   toastWrap: { width: '100%', maxWidth: 480 },
   toast: {
     flexDirection: 'row',

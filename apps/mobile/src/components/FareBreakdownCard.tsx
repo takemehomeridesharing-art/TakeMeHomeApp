@@ -44,9 +44,14 @@ export function FareBreakdownCard({
       <Row label="Distance you ride" value={formatKm(segmentKm)} />
       <View style={s.formula}>
         <Icon name="calculator-outline" size={14} color="ink2" />
-        <Text variant="caption" style={s.formulaText}>
-          Running cost {formatRwf(RUNNING_COST_PER_KM)}/km ÷ (seats + 1) = {formatRwf(RUNNING_COST_PER_KM)} ÷ ({seatsOffered} + 1)
-        </Text>
+        <View style={s.formulaTexts}>
+          <Text variant="caption" style={s.formulaText}>
+            Running cost {formatRwf(RUNNING_COST_PER_KM)}/km ÷ (seats + 1)
+          </Text>
+          <Text variant="caption" color="ink" style={s.formulaValue}>
+            {formatRwf(RUNNING_COST_PER_KM)} ÷ ({seatsOffered} + 1) = {formatRwf(Math.floor(RUNNING_COST_PER_KM / (seatsOffered + 1)))} per km
+          </Text>
+        </View>
       </View>
       <Row label="Your cost share" value={formatRwf(costShare)} />
       <Row label={isEV ? 'Booking fee · EV rate' : 'Booking fee'} value={formatRwf(bookingFee)} />
@@ -92,8 +97,10 @@ const useStyles = makeStyles((t) => ({
   title: { marginBottom: 2 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
   value: { fontFamily: t.fonts.heading, fontSize: 15, color: t.colors.ink, fontVariant: ['tabular-nums'] },
-  formula: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.colors.bg, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
-  formulaText: { flex: 1, fontSize: 12 },
+  formula: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: t.colors.bg, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8 },
+  formulaTexts: { flex: 1, gap: 1 },
+  formulaText: { fontSize: 12, lineHeight: 16 },
+  formulaValue: { fontFamily: t.fonts.bodySemiBold, fontSize: 12, lineHeight: 16 },
   divider: { height: 1, backgroundColor: t.colors.line, marginVertical: 2 },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   total: { fontFamily: t.fonts.headingHeavy, fontSize: 24, lineHeight: 30, color: t.colors.ink, fontVariant: ['tabular-nums'] },

@@ -157,9 +157,11 @@ export const TripMap: TripMapComponent = function TripMap({
             {labelled.map((p) => {
               const P = project(p);
               const strong = p.id === boardPlaceId || p.id === alightPlaceId || routeIds.has(p.id);
+              const flip = P.x > width - 96; // keep labels inside the right edge
               const common = {
-                x: P.x + 9,
+                x: flip ? P.x - 9 : P.x + 9,
                 y: P.y + 4,
+                textAnchor: (flip ? 'end' : 'start') as 'end' | 'start',
                 fontSize: strong ? 11 : 10,
                 fontFamily: strong ? fonts.bodyBold : fonts.bodySemiBold,
               };

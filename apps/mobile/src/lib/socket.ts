@@ -96,3 +96,9 @@ export function useSocketConnected(): boolean {
     () => false,
   );
 }
+
+/** DEV ONLY: dispatches a fake server event to local subscribers (used by the UI kit gallery). */
+export function simulateServerEvent<E extends ServerEvent>(event: E, ...args: Parameters<ServerToClientEvents[E]>): void {
+  if (!__DEV__) return;
+  handlers.get(event)?.forEach((h) => h(...args));
+}

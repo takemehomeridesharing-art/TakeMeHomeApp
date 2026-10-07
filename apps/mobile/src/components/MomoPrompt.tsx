@@ -1,7 +1,7 @@
 import { formatRwf, type MomoPrompt as MomoPromptEvent } from '@tmh/shared';
 import { useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
-import { api, errorMessage } from '@/lib/api';
+import { api, ApiError, errorMessage } from '@/lib/api';
 import { formatPhone } from '@/lib/format';
 import { useSocketEvent } from '@/lib/socket';
 import { makeStyles } from '@/theme';
@@ -17,6 +17,7 @@ export function MomoPrompt() {
   const s = useStyles();
   const [queue, setQueue] = useState<MomoPromptEvent[]>([]);
   const [busy, setBusy] = useState<'approve' | 'decline' | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const prompt = queue[0];
 
   useSocketEvent('momo:prompt', (p) => {
@@ -26,11 +27,18 @@ export function MomoPrompt() {
   const respond = async (approve: boolean) => {
     if (!prompt) return;
     setBusy(approve ? 'approve' : 'decline');
+    setError(null);
     try {
       await api.post(`/dev/momo/${encodeURIComponent(prompt.providerRef)}/respond`, { approve });
       setQueue((q) => q.slice(1));
     } catch (e) {
-      toast.error('MoMo simulator', errorMessage(e));
+      if (e instanceof ApiError && e.status >= 400 && e.status < 500) {
+        // Stale/unknown prompt (already answered, expired…): drop it so the dialog can't get stuck.
+        setQueue((q) => q.slice(1));
+        toast.error('MoMo simulator', errorMessage(e));
+      } else {
+        setError(errorMessage(e));
+      }
     } finally {
       setBusy(null);
     }
@@ -57,6 +65,7 @@ export function MomoPrompt() {
               <View key={i} style={s.pinDot} />
             ))}
           </View>
+          {error ? <Text style={s.error}>{error}</Text> : null}
           <View style={s.actions}>
             <Pressable
               accessibilityRole="button"
@@ -92,6 +101,7 @@ const useStyles = makeStyles((t) => ({
   message: { paddingHorizontal: 20, fontSize: 15, lineHeight: 21, color: '#222222', fontFamily: t.fonts.body },
   pin: { flexDirection: 'row', gap: 10, marginHorizontal: 20, marginTop: 14, paddingBottom: 8, borderBottomWidth: 2, borderBottomColor: '#0F7B6C' },
   pinDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#222222' },
+  error: { marginHorizontal: 20, marginTop: 10, fontSize: 13, color: t.colors.coral, fontFamily: t.fonts.body },
   actions: { flexDirection: 'row', marginTop: 18, borderTopWidth: 1, borderTopColor: '#E0E0E0' },
   action: { flex: 1, height: 50, alignItems: 'center', justifyContent: 'center' },
   sep: { width: 1, backgroundColor: '#E0E0E0' },
