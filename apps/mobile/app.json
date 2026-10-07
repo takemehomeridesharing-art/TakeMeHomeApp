@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "Take Me Home",
+    "slug": "take-me-home",
+    "scheme": "takemehome",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F7F8FC",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "rw.takemehome.app"
+    },
+    "android": {
+      "package": "rw.takemehome.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#4353FF"
+      },
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#F7F8FC"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Take Me Home uses your photos for your profile picture, vehicle photos and verification documents.",
+          "cameraPermission": "Take Me Home uses the camera to photograph your vehicle and verification documents."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Take Me Home uses your location to show nearby pickup points and to share it if you press SOS."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
