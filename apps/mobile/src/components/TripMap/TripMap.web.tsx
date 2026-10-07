@@ -29,6 +29,8 @@ export const TripMap: TripMapComponent = function TripMap({
   boardPlaceId,
   alightPlaceId,
   height = 240,
+  insetTop = 0,
+  insetBottom = 0,
   style,
 }: TripMapProps) {
   const s = useStyles();
@@ -48,15 +50,15 @@ export const TripMap: TripMapComponent = function TripMap({
     const spanX = Math.max((maxLng - minLng) * k, 0.01);
     const spanY = Math.max(maxLat - minLat, 0.01);
     const innerW = Math.max(width - PAD_X * 2, 1);
-    const innerH = Math.max(height - PAD_TOP - PAD_BOTTOM, 1);
+    const innerH = Math.max(height - PAD_TOP - PAD_BOTTOM - insetTop - insetBottom, 1);
     const scale = Math.min(innerW / spanX, innerH / spanY);
     const offX = PAD_X + (innerW - spanX * scale) / 2;
-    const offY = PAD_TOP + (innerH - spanY * scale) / 2;
+    const offY = PAD_TOP + insetTop + (innerH - spanY * scale) / 2;
     return (p: { lat: number; lng: number }): Projected => ({
       x: offX + (p.lng - minLng) * k * scale,
       y: offY + (maxLat - p.lat) * scale,
     });
-  }, [routeStops, pins, allPlaces, width, height]);
+  }, [routeStops, pins, allPlaces, width, height, insetTop, insetBottom]);
 
   const byId = useMemo(() => new Map(allPlaces.map((p) => [p.id, p])), [allPlaces]);
   const routeIds = new Set(routeStops.map((p) => p.id));
@@ -180,13 +182,16 @@ export const TripMap: TripMapComponent = function TripMap({
 
           {pins.map((pin) => {
             const P = project(pin);
+            // Keep the tag on screen near the edges; the pointer still marks the exact spot.
+            const left = Math.min(Math.max(P.x - PIN_W / 2, 4), Math.max(width - PIN_W - 4, 4));
+            const nudge = { transform: [{ translateX: P.x - (left + PIN_W / 2) }] };
             return (
               <Pressable
                 key={pin.id}
                 accessibilityRole="button"
                 accessibilityLabel={`Trip to ${pin.title}${pin.fromAmount !== undefined ? `, from ${formatRwf(pin.fromAmount)}` : ''}`}
                 onPress={() => onPinPress?.(pin.id)}
-                style={({ pressed }) => [s.pin, { left: P.x - PIN_W / 2, top: P.y - 46 }, pressed ? s.pressed : null]}
+                style={({ pressed }) => [s.pin, { left, top: P.y - 46 }, pressed ? s.pressed : null]}
               >
                 <View style={s.tag}>
                   <View style={s.car}>
@@ -203,8 +208,8 @@ export const TripMap: TripMapComponent = function TripMap({
                     ) : null}
                   </View>
                 </View>
-                <View style={s.pointer} />
-                <View style={s.anchorDot} />
+                <View style={[s.pointer, nudge]} />
+                <View style={[s.anchorDot, nudge]} />
               </Pressable>
             );
           })}

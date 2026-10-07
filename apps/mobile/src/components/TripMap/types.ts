@@ -36,6 +36,10 @@ export interface TripMapProps {
   alightPlaceId?: string;
   /** Height in px (default 240). Width fills the parent. */
   height?: number;
+  /** Extra space (px) kept clear at the top when fitting, e.g. under a floating header. Default 0. */
+  insetTop?: number;
+  /** Extra space (px) kept clear at the bottom when fitting, e.g. under an overlapping card. Default 0. */
+  insetBottom?: number;
   /** Allow pan/zoom (native). Default true. */
   interactive?: boolean;
   style?: StyleProp<ViewStyle>;

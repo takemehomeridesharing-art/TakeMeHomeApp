@@ -59,7 +59,7 @@ Words: "contribution", "cost share", "request to join" — never "fare", "earnin
 | `Ticket` | `from`, `to`, `fromLandmark?`, `toLandmark?`, `departureTime` (ISO), `tripCode`, `stats?: {label,value,icon?,tone?}[]`, `status?` node, children — assumes it sits on the `bg` colour (notches) |
 | `TwoTripMeter` | `used`, `limit?` (`MAX_TRIPS_PER_DAY`), `dayLabel?` ("today") — "1 of 2 trips today", Out/Back segments |
 | `VerificationChips` | `chips: VerificationChips` (from `PublicUser.verification`), `show?: key[]`, `hideNone?` |
-| `TripMap` (`@/components/TripMap`) | `places?`, `routeStops?`, `pins?: {id, lat, lng, title, fromAmount?}[]`, `onPinPress?(id)`, `boardPlaceId?`, `alightPlaceId?`, `height?` (240), `interactive?`, `style?` — native: react-native-maps + OSM tiles; web: SVG schematic |
+| `TripMap` (`@/components/TripMap`) | `places?`, `routeStops?`, `pins?: {id, lat, lng, title, fromAmount?}[]`, `onPinPress?(id)`, `boardPlaceId?`, `alightPlaceId?`, `height?` (240), `insetTop?`/`insetBottom?` (keep room for overlays), `interactive?`, `style?` — native: react-native-maps + OSM tiles; web: SVG schematic |
 
 ## App-level (already mounted in `app/_layout.tsx`)
 

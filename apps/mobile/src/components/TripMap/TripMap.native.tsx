@@ -18,6 +18,8 @@ export const TripMap: TripMapComponent = function TripMap({
   boardPlaceId,
   alightPlaceId,
   height = 240,
+  insetTop = 0,
+  insetBottom = 0,
   interactive = true,
   style,
 }: TripMapProps) {
@@ -41,7 +43,7 @@ export const TripMap: TripMapComponent = function TripMap({
 
   const fit = () => {
     if (fitPoints.length > 1) {
-      mapRef.current?.fitToCoordinates(fitPoints, { edgePadding: { top: 70, right: 50, bottom: 40, left: 50 }, animated: false });
+      mapRef.current?.fitToCoordinates(fitPoints, { edgePadding: { top: 70 + insetTop, right: 50, bottom: 40 + insetBottom, left: 50 }, animated: false });
     }
   };
 
