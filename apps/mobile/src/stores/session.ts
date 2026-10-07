@@ -37,8 +37,14 @@ export const useSession = create<SessionState>()((set, get) => ({
 
   async signIn(auth) {
     queryClient.clear();
-    set({ token: auth.token, me: auth.user });
-    await Promise.all([secureStorage.setItem(TOKEN_KEY, auth.token), cacheStorage.setItem(ME_KEY, JSON.stringify(auth.user))]);
+    // People who drive (have a car) start in driver mode; everyone else as a passenger.
+    const mode: AppMode = auth.user.vehicles.length > 0 ? 'driver' : 'passenger';
+    set({ token: auth.token, me: auth.user, mode });
+    await Promise.all([
+      secureStorage.setItem(TOKEN_KEY, auth.token),
+      secureStorage.setItem(MODE_KEY, mode),
+      cacheStorage.setItem(ME_KEY, JSON.stringify(auth.user)),
+    ]);
   },
 
   async signOut() {

@@ -49,6 +49,7 @@ pnpm typecheck   # tsc --noEmit in every package
 pnpm lint        # ESLint across the monorepo
 pnpm db:reset    # wipe + re-seed the dev database (seeded trips are relative to "tomorrow")
 pnpm dev --no-mobile      # API + admin only
+pnpm e2e                  # scripted acceptance walkthrough (needs `pnpm dev` running)
 ```
 
 > Seeded trips are dated **tomorrow** relative to when the database was seeded. If you come back
@@ -78,11 +79,12 @@ Any other Rwandan number (`07[2389]x xxx xxx`) signs up a new account.
    name (optionally gender + a trusted contact phone, e.g. `0788999888`, so SOS has someone to text).
 3. **Rides** tab → From **Kimisagara**, To **CBD**, *Tomorrow* → **Claudine Uwimana · Nyamirambo → CBD 07:00**
    is the top match with a cost share of **RWF 460** + RWF 150 booking fee.
-4. Open the trip. In the corridor stop list, tap **Nyabugogo** as your drop-off: the fare
+4. Open the trip. In the corridor stop list, tap **Nyabugogo** as your drop-off: the contribution
    breakdown recomputes live (3.6 km → **RWF 270** cost share). Put it back to CBD (6.2 km → RWF 460).
 5. **Request to join** → the request screen shows *Waiting for Claudine*.
 6. **Web preview** (press `w`, or http://localhost:8081 in a browser): log in as **Claudine**
-   (`+250 788 000 002`, OTP `123456`). The **My Trip** dashboard shows the request appear in
+   (`+250 788 000 002`, OTP `123456`) — accounts with a car start in Driver mode (switch modes in
+   **Profile**). The **My Trip** dashboard shows the request appear in
    realtime (alongside Grace's) with the passenger's board point and contribution. **Accept** it.
 7. **Phone:** the request flips to *Accepted* in realtime → **Pay with MoMo** → after ~2 s the
    simulated MTN MoMo USSD prompt appears → **Approve** → the **ticket** with trip code
@@ -98,10 +100,22 @@ Any other Rwandan number (`07[2389]x xxx xxx`) signs up a new account.
     trip, the booking, the payment, both ratings and the **SOS event** (plus the mock SMS in
     *Outbox*) are all there.
 12. In admin → **Users**, **Suspend** the new passenger. Back on the phone, try to request a seat
-    on another trip (e.g. Jean-Paul's Remera → Kacyiru): the app shows *"Your account is suspended…"*
-    (API: `403 ACCOUNT_SUSPENDED`).
+    on another trip (e.g. Claudine's CBD → Nyamirambo return trip at 17:30): the app shows
+    *"Your account is suspended…"* (API: `403 ACCOUNT_SUSPENDED`).
 
-The same flow is exercised headlessly by the API integration tests (`apps/api/test/joinFlow.test.ts`).
+### Run it automatically
+
+The whole walkthrough above is scripted with Playwright against the real UIs (a new passenger on
+the mobile web preview, Claudine on the web preview, and the admin dashboard):
+
+```bash
+pnpm db:reset && pnpm dev          # terminal 1
+pnpm exec playwright-core install chromium   # once (or set CHROME_PATH to a Chromium binary)
+pnpm e2e                           # terminal 2 — prints each step and saves screenshots
+```
+
+The API side of the same flow is also covered headlessly by the integration tests
+(`apps/api/test/joinFlow.test.ts`).
 
 ---
 

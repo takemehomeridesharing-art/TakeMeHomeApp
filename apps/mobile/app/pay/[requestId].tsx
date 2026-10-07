@@ -120,7 +120,7 @@ function PaySheet({ item }: { item: PassengerRequestItem }) {
           </View>
           <View style={s.flex}>
             <Text variant="h3">MTN Mobile Money</Text>
-            <Text variant="caption">Your cost share for this seat</Text>
+            <Text variant="caption">Cost share + booking fee for this seat</Text>
           </View>
           <Text style={s.headerAmount}>{formatRwf(jr.total)}</Text>
         </View>

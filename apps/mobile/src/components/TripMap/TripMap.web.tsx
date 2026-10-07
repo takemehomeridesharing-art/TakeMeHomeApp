@@ -11,6 +11,30 @@ const PAD_X = 36;
 const PAD_TOP = 64; // room for pin tags
 const PAD_BOTTOM = 28;
 const PIN_W = 150;
+/** Approximate tag box used for collision avoidance (the tag shrinks to its text). */
+const TAG_H = 34;
+const TAG_HALF_W = 62;
+
+/**
+ * Places pin tags above their points, moving a tag up (then down) when it would cover a tag
+ * placed before it, so nearby trips stay readable.
+ */
+function layoutPins<T extends { P: Projected }>(items: T[], width: number): (T & { left: number; top: number })[] {
+  const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
+  const hits = (x0: number, x1: number, y0: number, y1: number) =>
+    placed.some((b) => x0 < b.x1 && x1 > b.x0 && y0 < b.y1 && y1 > b.y0);
+  return [...items]
+    .sort((a, b) => a.P.y - b.P.y)
+    .map((item) => {
+      const left = Math.min(Math.max(item.P.x - PIN_W / 2, 4), Math.max(width - PIN_W - 4, 4));
+      const cx = left + PIN_W / 2;
+      const base = item.P.y - 46;
+      const candidates = [0, -40, -80, 40, 80].map((dy) => base + dy).filter((t) => t >= 0);
+      const top = candidates.find((t) => !hits(cx - TAG_HALF_W, cx + TAG_HALF_W, t, t + TAG_H)) ?? base;
+      placed.push({ x0: cx - TAG_HALF_W, x1: cx + TAG_HALF_W, y0: top, y1: top + TAG_H });
+      return { ...item, left, top };
+    });
+}
 
 interface Projected {
   x: number;
@@ -180,18 +204,17 @@ export const TripMap: TripMapComponent = function TripMap({
             })}
           </Svg>
 
-          {pins.map((pin) => {
-            const P = project(pin);
-            // Keep the tag on screen near the edges; the pointer still marks the exact spot.
-            const left = Math.min(Math.max(P.x - PIN_W / 2, 4), Math.max(width - PIN_W - 4, 4));
+          {layoutPins(pins.map((pin) => ({ pin, P: project(pin) })), width).map(({ pin, P, left, top }) => {
             const nudge = { transform: [{ translateX: P.x - (left + PIN_W / 2) }] };
+            // When a tag had to move to avoid another one, a leader line keeps it tied to its spot.
+            const leader = Math.max(0, P.y - (top + TAG_H + 7) - 5);
             return (
               <Pressable
                 key={pin.id}
                 accessibilityRole="button"
                 accessibilityLabel={`Trip to ${pin.title}${pin.fromAmount !== undefined ? `, from ${formatRwf(pin.fromAmount)}` : ''}`}
                 onPress={() => onPinPress?.(pin.id)}
-                style={({ pressed }) => [s.pin, { left, top: P.y - 46 }, pressed ? s.pressed : null]}
+                style={({ pressed }) => [s.pin, { left, top }, pressed ? s.pressed : null]}
               >
                 <View style={s.tag}>
                   <View style={s.car}>
@@ -209,6 +232,7 @@ export const TripMap: TripMapComponent = function TripMap({
                   </View>
                 </View>
                 <View style={[s.pointer, nudge]} />
+                {leader > 0 ? <View style={[s.leader, nudge, { height: leader }]} /> : null}
                 <View style={[s.anchorDot, nudge]} />
               </Pressable>
             );
@@ -249,5 +273,6 @@ const useStyles = makeStyles((t) => ({
     borderRightColor: 'transparent',
     borderTopColor: t.colors.surface,
   },
+  leader: { width: 2, backgroundColor: t.colors.surface, opacity: 0.9 },
   anchorDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.colors.primary, borderWidth: 2, borderColor: t.colors.surface, marginTop: 1 },
 }));

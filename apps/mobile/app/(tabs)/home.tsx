@@ -1,4 +1,4 @@
-import { formatRwf, type Place } from '@tmh/shared';
+import { formatRwf, type Place, type TripSummary } from '@tmh/shared';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
@@ -36,22 +36,33 @@ export default function HomeTab() {
   const fromId = from ?? homePlace?.id ?? null;
   const placeName = (id: string | null) => places.find((p) => p.id === id)?.name;
 
-  // One car pin per trip, at its origin; trips leaving from the same stop are nudged apart.
+  // One car pin per origin stop: a single trip shows its destination, several show a count and open search.
   const pins = useMemo<MapPin[]>(() => {
-    const seen = new Map<string, number>();
-    return (trips.data ?? []).map((t) => {
-      const origin = t.stops[0]!.place;
-      const n = seen.get(origin.id) ?? 0;
-      seen.set(origin.id, n + 1);
+    const byOrigin = new Map<string, TripSummary[]>();
+    for (const t of trips.data ?? []) {
+      const id = t.stops[0]!.placeId;
+      byOrigin.set(id, [...(byOrigin.get(id) ?? []), t]);
+    }
+    return [...byOrigin.entries()].map(([originId, group]) => {
+      const origin = group[0]!.stops[0]!.place;
+      const only = group.length === 1 ? group[0]! : null;
       return {
-        id: t.id,
-        lat: origin.lat - n * 0.0045,
-        lng: origin.lng + n * 0.004,
-        title: t.stops[t.stops.length - 1]!.place.name,
-        fromAmount: t.fullRouteContribution.total,
+        id: only ? only.id : `origin:${originId}`,
+        lat: origin.lat,
+        lng: origin.lng,
+        title: only ? only.stops[only.stops.length - 1]!.place.name : `${group.length} trips`,
+        fromAmount: Math.min(...group.map((t) => t.fullRouteContribution.total)),
       };
     });
   }, [trips.data]);
+
+  const openPin = (id: string) => {
+    if (id.startsWith('origin:')) {
+      router.navigate({ pathname: '/rides', params: { from: id.slice('origin:'.length), to: '', when: 'tomorrow' } });
+    } else {
+      router.push({ pathname: '/trip/[id]', params: { id } });
+    }
+  };
 
   const nextRide = useMemo(
     () =>
@@ -91,7 +102,7 @@ export default function HomeTab() {
           insetTop={insets.top + 40}
           insetBottom={SEARCH_OVERLAP}
           pins={pins}
-          onPinPress={(id) => router.push({ pathname: '/trip/[id]', params: { id } })}
+          onPinPress={openPin}
         />
         <View style={[s.topBar, { top: insets.top + 10 }]}>
           <Pressable onPress={() => router.navigate('/profile')} accessibilityRole="button" accessibilityLabel="Your profile" style={({ pressed }) => [s.hello, pressed ? s.pressed : null]}>
