@@ -1,6 +1,6 @@
 import { formatRwf } from '@tmh/shared';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, UrlTile } from 'react-native-maps';
 import { makeStyles, useTheme } from '@/theme';
 import { Icon } from '../Icon';
@@ -9,6 +9,18 @@ import { mapImagery } from './mapConfig';
 import { KIGALI_REGION, type MapPin, type MapPlace, type TripMapComponent, type TripMapProps } from './types';
 
 const coord = (p: { lat: number; lng: number }) => ({ latitude: p.lat, longitude: p.lng });
+
+const ANDROID = Platform.OS === 'android';
+
+/**
+ * Android's Google map draws on a surface that ignores rounded, clipped parents — on many devices
+ * the result is a black box. So on Android the map keeps square corners.
+ */
+function withoutRadius(style: StyleProp<ViewStyle>): ViewStyle {
+  const flat = { ...(StyleSheet.flatten(style) ?? {}) } as Record<string, unknown>;
+  for (const key of Object.keys(flat)) if (key.toLowerCase().includes('radius')) delete flat[key];
+  return flat as ViewStyle;
+}
 
 // Read once: EXPO_PUBLIC_* values are inlined at build time.
 const IMAGERY = mapImagery(
@@ -75,12 +87,14 @@ export const TripMap: TripMapComponent = function TripMap({
   const backgroundPlaces = places.filter((p) => !routeIds.has(p.id));
 
   return (
-    <View style={[s.wrap, { height }, style]}>
+    <View style={[s.wrap, ANDROID ? s.wrapAndroid : null, { height }, ANDROID ? withoutRadius(style) : style]}>
       <MapView
         ref={mapRef}
         style={StyleSheet.absoluteFill}
         initialRegion={KIGALI_REGION}
         provider={IMAGERY.provider === 'google' ? PROVIDER_GOOGLE : undefined}
+        // Google's newer renderer draws a black map on some Android devices; the legacy one is reliable.
+        googleRenderer={ANDROID ? 'LEGACY' : undefined}
         mapType="standard"
         onMapReady={() => {
           setReady(true);
@@ -154,6 +168,7 @@ function PinTag({ pin }: { pin: MapPin }) {
 
 const useStyles = makeStyles((t) => ({
   wrap: { overflow: 'hidden', backgroundColor: '#E9EDF5' },
+  wrapAndroid: { overflow: 'visible', borderRadius: 0 },
   placeDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: t.colors.surface, borderWidth: 2, borderColor: t.colors.ink3 },
   stopDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: t.colors.surface, borderWidth: 3, borderColor: t.colors.primary },
   boardDot: { width: 18, height: 18, borderRadius: 9, backgroundColor: t.colors.primary, borderWidth: 3, borderColor: t.colors.surface },
