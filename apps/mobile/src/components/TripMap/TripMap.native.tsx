@@ -1,15 +1,26 @@
 import { formatRwf } from '@tmh/shared';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, UrlTile } from 'react-native-maps';
 import { makeStyles, useTheme } from '@/theme';
 import { Icon } from '../Icon';
 import { Text } from '../Text';
+import { mapImagery } from './mapConfig';
 import { KIGALI_REGION, type MapPin, type MapPlace, type TripMapComponent, type TripMapProps } from './types';
 
 const coord = (p: { lat: number; lng: number }) => ({ latitude: p.lat, longitude: p.lng });
 
-/** react-native-maps implementation with OpenStreetMap tiles. The only file that imports react-native-maps. */
+// Read once: EXPO_PUBLIC_* values are inlined at build time.
+const IMAGERY = mapImagery({
+  EXPO_PUBLIC_MAP_PROVIDER: process.env.EXPO_PUBLIC_MAP_PROVIDER,
+  EXPO_PUBLIC_MAP_TILE_URL: process.env.EXPO_PUBLIC_MAP_TILE_URL,
+  EXPO_PUBLIC_MAP_ATTRIBUTION: process.env.EXPO_PUBLIC_MAP_ATTRIBUTION,
+});
+
+/**
+ * react-native-maps implementation — XYZ tiles (OpenStreetMap by default) or Google Maps, see
+ * `mapConfig.ts`. The only file that imports react-native-maps.
+ */
 export const TripMap: TripMapComponent = function TripMap({
   places = [],
   routeStops = [],
@@ -56,7 +67,8 @@ export const TripMap: TripMapComponent = function TripMap({
         ref={mapRef}
         style={StyleSheet.absoluteFill}
         initialRegion={KIGALI_REGION}
-        mapType={Platform.OS === 'android' ? 'none' : 'standard'}
+        provider={IMAGERY.provider === 'google' ? PROVIDER_GOOGLE : undefined}
+        mapType={IMAGERY.provider === 'tiles' && Platform.OS === 'android' ? 'none' : 'standard'}
         onMapReady={fit}
         scrollEnabled={interactive}
         zoomEnabled={interactive}
@@ -66,7 +78,7 @@ export const TripMap: TripMapComponent = function TripMap({
         showsPointsOfInterests={false}
         showsCompass={false}
       >
-        <UrlTile urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} shouldReplaceMapContent />
+        {IMAGERY.provider === 'tiles' ? <UrlTile urlTemplate={IMAGERY.tileUrl} maximumZ={19} shouldReplaceMapContent /> : null}
         {routeStops.length > 1 ? (
           <Polyline coordinates={routeStops.map(coord)} strokeColor={ridden.length ? 'rgba(67,83,255,0.35)' : colors.primary} strokeWidth={5} lineJoin="round" lineCap="round" />
         ) : null}
@@ -86,9 +98,11 @@ export const TripMap: TripMapComponent = function TripMap({
           </Marker>
         ))}
       </MapView>
-      <View style={[s.attribution, s.noPointer]}>
-        <Text style={s.attributionText}>© OpenStreetMap</Text>
-      </View>
+      {IMAGERY.attribution ? (
+        <View style={[s.attribution, s.noPointer]}>
+          <Text style={s.attributionText}>{IMAGERY.attribution}</Text>
+        </View>
+      ) : null}
     </View>
   );
 };
