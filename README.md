@@ -200,8 +200,8 @@ Everything has a working default for local dev; these are the knobs for real dep
 | `TRIP_START_WINDOW_MINUTES` | API | `60` in production, off in dev | How early before departure a driver may start a trip (`off` disables). Off locally so the walkthrough can run tomorrow's seeded trip today; set `TRIP_START_WINDOW_MINUTES=60 pnpm dev` to try the real rule. |
 | `MOMO_PROMPT_DELAY_MS` | API | `2000` | Delay before the simulated MoMo USSD prompt appears. |
 | `EXPO_PUBLIC_API_URL` | mobile | auto (LAN host of the Expo server, port 4000) | Point the app at a specific API. |
-| `EXPO_PUBLIC_MAP_TILE_URL` | mobile | OpenStreetMap public tiles | XYZ tile URL for native maps, e.g. a MapTiler/Stadia/Thunderforest URL with your key. OSM's free tiles must not be used for production traffic. |
-| `EXPO_PUBLIC_MAP_ATTRIBUTION` | mobile | `© OpenStreetMap` (default tiles only) | Credit line shown on the map for your tile provider. |
+| `EXPO_PUBLIC_MAP_TILE_URL` | mobile | Android: Google base map · iOS: OpenStreetMap public tiles | XYZ tile URL for native maps on both platforms, e.g. a MapTiler/Stadia/Thunderforest URL with your key. OSM's free tiles must not be used for production traffic (and they refuse Android app requests). |
+| `EXPO_PUBLIC_MAP_ATTRIBUTION` | mobile | `© OpenStreetMap` (iOS default tiles only) | Credit line shown on the map for your tile provider. |
 | `EXPO_PUBLIC_MAP_PROVIDER` | mobile | tiles | `google` draws Google's base map instead of tiles. |
 | `GOOGLE_MAPS_ANDROID_API_KEY` / `GOOGLE_MAPS_IOS_API_KEY` | mobile build (`app.config.ts`) | none | Needed for production/dev-client builds: Android's maps always run on Google Maps, so **every production Android build needs the Android key**; iOS needs its key only with `EXPO_PUBLIC_MAP_PROVIDER=google`. Expo Go works without keys. |
 | `VITE_API_URL` | admin | `http(s)://<host>:4000` | Point the dashboard at a specific API. |
@@ -213,7 +213,7 @@ Everything has a working default for local dev; these are the knobs for real dep
 | OTP / SMS | `MockSmsProvider` — code is always `123456`, every SMS printed to the API log and saved to the admin **Outbox** | Implement `SmsProvider` (`apps/api/src/providers/sms.ts`) with an SMS gateway and pass it to `buildApp` |
 | Payments | `MockMomoProvider` — "request to pay", a simulated USSD prompt 2 s later (in-app **Approve / Decline**), then our own webhook | Implement `PaymentProvider` (`initiateCharge`, `confirmCharge`, `payout`, `refund`, `parseWebhook`) for MTN MoMo / Airtel Money |
 | Push notifications | In-app notification centre + Socket.IO events; `MockPushProvider` logs to Outbox | Implement `PushProvider` with Expo push tokens |
-| Maps | react-native-maps with OpenStreetMap's public tiles (iOS/Android); SVG corridor schematic on web | Set `EXPO_PUBLIC_MAP_TILE_URL` to a paid tile provider, or `EXPO_PUBLIC_MAP_PROVIDER=google` + Google Maps keys (see [Configuration](#configuration)) |
+| Maps | react-native-maps — Google's base map on Android, OpenStreetMap tiles over Apple Maps on iOS; SVG corridor schematic on web | Set `EXPO_PUBLIC_MAP_TILE_URL` to a paid tile provider, or `EXPO_PUBLIC_MAP_PROVIDER=google` + Google Maps keys (see [Configuration](#configuration)) |
 | Distances | Places graph: haversine × 1.3 road factor | Replace `shortestPath`/`buildCorridor` in `packages/shared/src/places.ts` (geo-radius matching is Phase 2) |
 | File uploads | Base64 → `apps/api/uploads/` on disk | Object storage behind `POST /uploads` |
 | Database | SQLite file `apps/api/prisma/dev.db` | Postgres: change `provider` in `schema.prisma`, set `DATABASE_URL`, regenerate migrations |
