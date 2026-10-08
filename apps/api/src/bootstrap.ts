@@ -1,18 +1,17 @@
 import { execFileSync } from 'node:child_process';
-import path from 'node:path';
+import { createRequire } from 'node:module';
 import { API_ROOT } from './env';
+
+/**
+ * Runs the Prisma CLI with the current Node binary. Calling Prisma's JS entry point directly
+ * (instead of `node_modules/.bin/prisma`, which is a `.cmd` shim on Windows) works on every OS.
+ */
+export function prismaCli(args: string[], env: NodeJS.ProcessEnv = process.env) {
+  const cli = createRequire(import.meta.url).resolve('prisma/build/index.js');
+  execFileSync(process.execPath, [cli, ...args], { cwd: API_ROOT, stdio: 'inherit', env });
+}
 
 /** Applies committed Prisma migrations (creates the SQLite file on first run). */
 export function migrate() {
-  const bin = path.join(API_ROOT, 'node_modules', '.bin', 'prisma');
-  const fallback = path.join(API_ROOT, '..', '..', 'node_modules', '.bin', 'prisma');
-  const prismaBin = [bin, fallback].find((p) => {
-    try {
-      execFileSync(p, ['--version'], { stdio: 'ignore' });
-      return true;
-    } catch {
-      return false;
-    }
-  });
-  execFileSync(prismaBin ?? 'prisma', ['migrate', 'deploy'], { cwd: API_ROOT, stdio: 'inherit', env: process.env });
+  prismaCli(['migrate', 'deploy']);
 }

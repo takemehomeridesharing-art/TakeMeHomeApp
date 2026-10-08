@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 export const API_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Defaults make `pnpm dev` work on a fresh clone with no .env. */
-process.env.DATABASE_URL ??= `file:${path.join(API_ROOT, 'prisma', 'dev.db')}`;
+// Forward slashes keep the SQLite URL valid on Windows too (C:/Users/... rather than C:\\Users\\...).
+process.env.DATABASE_URL ??= `file:${path.join(API_ROOT, 'prisma', 'dev.db').replaceAll('\\', '/')}`;
 
 const nodeEnv = process.env.NODE_ENV ?? 'development';
 

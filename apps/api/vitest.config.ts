@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     env: {
       NODE_ENV: 'test',
-      DATABASE_URL: `file:${path.resolve(import.meta.dirname, 'prisma', 'test.db')}`,
+      DATABASE_URL: `file:${path.resolve(import.meta.dirname, 'prisma', 'test.db').replaceAll('\\', '/')}`,
       UPLOADS_DIR: path.resolve(import.meta.dirname, 'uploads', '.test'),
     },
     globalSetup: ['./test/globalSetup.ts'],
