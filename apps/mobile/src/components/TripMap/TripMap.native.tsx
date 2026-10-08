@@ -11,11 +11,14 @@ import { KIGALI_REGION, type MapPin, type MapPlace, type TripMapComponent, type 
 const coord = (p: { lat: number; lng: number }) => ({ latitude: p.lat, longitude: p.lng });
 
 // Read once: EXPO_PUBLIC_* values are inlined at build time.
-const IMAGERY = mapImagery({
-  EXPO_PUBLIC_MAP_PROVIDER: process.env.EXPO_PUBLIC_MAP_PROVIDER,
-  EXPO_PUBLIC_MAP_TILE_URL: process.env.EXPO_PUBLIC_MAP_TILE_URL,
-  EXPO_PUBLIC_MAP_ATTRIBUTION: process.env.EXPO_PUBLIC_MAP_ATTRIBUTION,
-});
+const IMAGERY = mapImagery(
+  {
+    EXPO_PUBLIC_MAP_PROVIDER: process.env.EXPO_PUBLIC_MAP_PROVIDER,
+    EXPO_PUBLIC_MAP_TILE_URL: process.env.EXPO_PUBLIC_MAP_TILE_URL,
+    EXPO_PUBLIC_MAP_ATTRIBUTION: process.env.EXPO_PUBLIC_MAP_ATTRIBUTION,
+  },
+  Platform.OS,
+);
 
 /**
  * react-native-maps implementation — XYZ tiles (OpenStreetMap by default) or Google Maps, see
@@ -58,6 +61,16 @@ export const TripMap: TripMapComponent = function TripMap({
     }
   };
 
+  // Re-fit once layout has settled (Android can report the map ready before it has a size) and
+  // whenever the points change.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!ready) return;
+    const id = setTimeout(fit, 350);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, fitPoints]);
+
   const routeIds = new Set(routeStops.map((p) => p.id));
   const backgroundPlaces = places.filter((p) => !routeIds.has(p.id));
 
@@ -68,8 +81,11 @@ export const TripMap: TripMapComponent = function TripMap({
         style={StyleSheet.absoluteFill}
         initialRegion={KIGALI_REGION}
         provider={IMAGERY.provider === 'google' ? PROVIDER_GOOGLE : undefined}
-        mapType={IMAGERY.provider === 'tiles' && Platform.OS === 'android' ? 'none' : 'standard'}
-        onMapReady={fit}
+        mapType="standard"
+        onMapReady={() => {
+          setReady(true);
+          fit();
+        }}
         scrollEnabled={interactive}
         zoomEnabled={interactive}
         rotateEnabled={false}
@@ -78,11 +94,11 @@ export const TripMap: TripMapComponent = function TripMap({
         showsPointsOfInterests={false}
         showsCompass={false}
       >
-        {IMAGERY.provider === 'tiles' ? <UrlTile urlTemplate={IMAGERY.tileUrl} maximumZ={19} shouldReplaceMapContent /> : null}
+        {IMAGERY.provider === 'tiles' ? <UrlTile urlTemplate={IMAGERY.tileUrl} maximumZ={19} zIndex={0} /> : null}
         {routeStops.length > 1 ? (
-          <Polyline coordinates={routeStops.map(coord)} strokeColor={ridden.length ? 'rgba(67,83,255,0.35)' : colors.primary} strokeWidth={5} lineJoin="round" lineCap="round" />
+          <Polyline zIndex={2} coordinates={routeStops.map(coord)} strokeColor={ridden.length ? 'rgba(67,83,255,0.35)' : colors.primary} strokeWidth={5} lineJoin="round" lineCap="round" />
         ) : null}
-        {ridden.length > 1 ? <Polyline coordinates={ridden.map(coord)} strokeColor={colors.primary} strokeWidth={6} lineJoin="round" lineCap="round" /> : null}
+        {ridden.length > 1 ? <Polyline zIndex={3} coordinates={ridden.map(coord)} strokeColor={colors.primary} strokeWidth={6} lineJoin="round" lineCap="round" /> : null}
 
         {backgroundPlaces.map((p) => (
           <Marker key={`bg-${p.id}`} coordinate={coord(p)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={tracks} title={p.name} description={p.landmark}>
