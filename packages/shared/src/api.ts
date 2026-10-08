@@ -269,6 +269,8 @@ export type JoinRequest = z.infer<typeof JoinRequestSchema>;
 export const TripDetailSchema = TripSummarySchema.extend({
   /** Passengers on each leg (leg i = stop i → stop i+1). */
   legOccupancy: z.array(z.number().int()),
+  /** Earliest moment the driver may start the trip (null = no restriction). */
+  startableFrom: IsoDate.nullable(),
   viewerRole: z.enum(['driver', 'passenger', 'viewer']),
   myJoinRequest: JoinRequestSchema.nullable(),
   /** Driver only. */
@@ -287,6 +289,8 @@ export const TripDetailSchema = TripSummarySchema.extend({
         alightStop: TripStopSchema,
         contributionAmount: z.number(),
         driverRated: z.boolean(),
+        /** Only while the booking is active (see `counterpartPhone`). */
+        passengerPhone: z.string().nullable(),
       }),
     )
     .nullable(),
@@ -354,6 +358,11 @@ export const BookingSchema = z.object({
   myRating: RatingSchema.nullable(),
   /** Whether the other side has rated (the stars stay private until both rate). */
   counterpartRated: z.boolean(),
+  /**
+   * The other side's phone number, shared only between the driver and a paid passenger while the
+   * booking is confirmed and the trip hasn't finished — null otherwise.
+   */
+  counterpartPhone: z.string().nullable(),
   trustedContactPhone: z.string().nullable(),
   createdAt: IsoDate,
 });

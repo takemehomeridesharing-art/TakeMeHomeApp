@@ -22,6 +22,7 @@ import {
   type Weekday,
 } from '@tmh/shared';
 import type { Payment, Place, Prisma, Rating, TripStop, Vehicle, VerificationRequest } from '@prisma/client';
+import { env } from '../env';
 
 // ─── includes ───────────────────────────────────────────────────────────────────
 export const userInclude = {
@@ -235,6 +236,19 @@ type TripPassengersRow = Prisma.TripGetPayload<{ include: typeof tripPassengersI
 
 const PAID_BOOKING_STATUSES = new Set(['confirmed', 'completed']);
 
+/** Drivers can start a trip at most `tripStartWindowMinutes` before departure. */
+export function startableFrom(departure: Date): Date | null {
+  return env.tripStartWindowMinutes === null ? null : new Date(departure.getTime() - env.tripStartWindowMinutes * 60_000);
+}
+
+/**
+ * Phone numbers are shared only between a driver and a paid passenger, and only while the ride is
+ * still ahead or under way — never before payment, and not after the trip ends.
+ */
+export function phonesShared(bookingStatus: string, tripStatus: string): boolean {
+  return bookingStatus === 'confirmed' && ['published', 'full', 'in_progress'].includes(tripStatus);
+}
+
 export function toTripDetail(
   t: TripRow,
   viewerId: string,
@@ -256,6 +270,7 @@ export function toTripDetail(
   return {
     ...toTripSummary(t),
     legOccupancy: legOccupancy(t.stops.length, occupiedSegments(t)),
+    startableFrom: startableFrom(t.departureTime)?.toISOString() ?? null,
     viewerRole: isDriver ? 'driver' : extra.myRequests.length ? 'passenger' : 'viewer',
     myJoinRequest: myJoinRequest ? toJoinRequest(myJoinRequest) : null,
     joinRequests: isDriver && extra.allRequests ? extra.allRequests.map(toJoinRequest) : null,
@@ -270,6 +285,7 @@ export function toTripDetail(
           alightStop: toStop(jr.alightStop),
           contributionAmount: jr.contributionAmount,
           driverRated: jr.booking!.ratings.some((r) => r.raterId === viewerId),
+          passengerPhone: phonesShared(jr.booking!.status, t.status) ? jr.passenger.phone : null,
         }))
       : null,
   };
@@ -312,6 +328,7 @@ export function toBooking(b: BookingRow, viewerId: string): BookingDto {
     payment: toPayment(b.payment),
     myRating: mine ? toRating(mine) : null,
     counterpartRated: !!theirs,
+    counterpartPhone: phonesShared(b.status, trip.status) ? (viewerRole === 'passenger' ? trip.driver.phone : jr.passenger.phone) : null,
     trustedContactPhone: viewerRole === 'passenger' ? jr.passenger.trustedContactPhone : trip.driver.trustedContactPhone,
     createdAt: b.createdAt.toISOString(),
   };
