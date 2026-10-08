@@ -64,6 +64,8 @@ interface Form {
 }
 
 const WORK_DAYS = WEEKDAYS.slice(0, 5) as Weekday[];
+const WEEKEND = WEEKDAYS.slice(5) as Weekday[];
+const sameDays = (a: readonly Weekday[], b: readonly Weekday[]) => a.length === b.length && b.every((d) => a.includes(d));
 const placeName = (id: string) => KIGALI_PLACES.find((p) => p.id === id)?.name ?? id;
 const placeLandmark = (id: string) => KIGALI_PLACES.find((p) => p.id === id)?.landmark ?? '';
 const placeByName = (name: string | null | undefined) => KIGALI_PLACES.find((p) => p.name === name)?.id ?? null;
@@ -423,7 +425,24 @@ export default function PublishTab() {
             {form.recurring ? (
               <Animated.View entering={FadeInDown.duration(200)} style={s.gap10}>
                 <View style={s.chips}>
-                  {WORK_DAYS.map((d) => (
+                  {(
+                    [
+                      ['Weekdays', WORK_DAYS],
+                      ['Weekends', WEEKEND],
+                      ['Every day', [...WEEKDAYS]],
+                    ] as const
+                  ).map(([label, preset]) => (
+                    <Chip
+                      key={label}
+                      label={label}
+                      icon="calendar-outline"
+                      selected={sameDays(form.days, preset)}
+                      onPress={() => update({ days: [...preset] })}
+                    />
+                  ))}
+                </View>
+                <View style={s.chips}>
+                  {WEEKDAYS.map((d) => (
                     <Chip
                       key={d}
                       label={WEEKDAY_SHORT[d]}

@@ -1,4 +1,4 @@
-import { addDays, kigaliDateTime, kigaliDayKey } from '@tmh/shared';
+import { addDays, kigaliDateTime, kigaliDayKey, kigaliWeekday } from '@tmh/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { prisma } from '../src/db';
@@ -71,6 +71,20 @@ describe('two trips per driver per day (server-side)', () => {
     const results = await Promise.all(['06:00', '08:00', '10:00', '12:00'].map((t) => api.post('/trips', claudine, trip(vehicleId, day, t))));
     expect(results.filter((r) => r.status === 200)).toHaveLength(2);
     expect(results.filter((r) => r.status === 409)).toHaveLength(2);
+  });
+
+  it('supports weekend-only recurring trips', async () => {
+    const aline = await api.login(SEED_PHONES.aline);
+    const res = await api.post('/trips', aline, {
+      vehicleId: data.aline.vehicles[0]!.id,
+      departureTime: kigaliDateTime(tomorrow(), '09:00').toISOString(),
+      recurringDays: ['SA', 'SU'],
+      seatsOffered: 2,
+      stopPlaceIds: ['kanombe', 'giporoso', 'remera'],
+    });
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(2); // one Saturday + one Sunday in the next 7 days
+    expect(res.body.map((t: { departureTime: string }) => kigaliWeekday(t.departureTime)).sort()).toEqual(['SA', 'SU']);
   });
 
   it('creates dated occurrences for recurring weekday trips', async () => {
