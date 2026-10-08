@@ -1,8 +1,9 @@
 import { formatRwf, type TripDetail } from '@tmh/shared';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { Button, Icon, Text, toast } from '@/components';
 import { errorMessage } from '@/lib/api';
+import { formatDeparture } from '@/lib/format';
 import { useCancelTrip, useCompleteTrip, useStartTrip } from '@/lib/queries';
 import { makeStyles } from '@/theme';
 import { ConfirmSheet } from './ConfirmSheet';
@@ -30,6 +31,16 @@ export function TripActions({ trip, onCompleted, onCancelled }: TripActionsProps
   const pending = (trip.joinRequests ?? []).filter((jr) => jr.status === 'pending');
   const unpaid = (trip.joinRequests ?? []).filter((jr) => jr.status === 'accepted' && !jr.bookingId);
   const paidShares = paid.reduce((sum, p) => sum + p.contributionAmount, 0);
+
+  // The API only lets a driver start shortly before departure; re-check every 30 s while waiting.
+  const startAt = trip.startableFrom ? Date.parse(trip.startableFrom) : null;
+  const [now, setNow] = useState(() => Date.now());
+  const tooEarly = startAt !== null && now < startAt;
+  useEffect(() => {
+    if (!tooEarly) return;
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, [tooEarly]);
 
   if (trip.status === 'completed' || trip.status === 'cancelled') return null;
 
@@ -90,7 +101,15 @@ export function TripActions({ trip, onCompleted, onCancelled }: TripActionsProps
         </>
       ) : (
         <>
-          <Button label="Start trip" icon="play" size="lg" block onPress={() => setSheet('start')} testID="start-trip" />
+          <Button label="Start trip" icon="play" size="lg" block disabled={tooEarly} onPress={() => setSheet('start')} testID="start-trip" />
+          {tooEarly && trip.startableFrom ? (
+            <View style={s.hint} testID="start-too-early">
+              <Icon name="time-outline" size={16} color="ink2" />
+              <Text variant="caption" style={s.hintText}>
+                You can start from {formatDeparture(trip.startableFrom)} — shortly before you leave.
+              </Text>
+            </View>
+          ) : null}
           <Button label="Cancel trip" variant="ghost" icon="close-circle-outline" block onPress={() => setSheet('cancel')} testID="cancel-trip" />
         </>
       )}
@@ -177,6 +196,8 @@ function Note({ icon, children }: { icon: 'time' | 'return-down-back'; children:
 
 const useStyles = makeStyles((t) => ({
   wrap: { gap: 6 },
+  hint: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 4 },
+  hintText: { flexShrink: 1 },
   live: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,7 +1,7 @@
 import { formatRwf, type TripDetail } from '@tmh/shared';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { Avatar, Badge, Button, Icon, Text, toast } from '@/components';
 import { errorMessage } from '@/lib/api';
@@ -135,6 +135,9 @@ function PassengerRow({ row, trip, divider }: { row: Row; trip: TripDetail; divi
             <View style={s.flex} />
           )}
           <View style={s.actions}>
+            {b?.passengerPhone ? (
+              <Button label="Call" size="sm" variant="ghost" icon="call-outline" onPress={() => void Linking.openURL(`tel:${b.passengerPhone}`)} testID={`call-${row.key}`} />
+            ) : null}
             {b && b.status === 'confirmed' ? (
               <Button label="Message" size="sm" variant="ghost" icon="chatbubble-ellipses-outline" onPress={() => router.push(`/chat/${b.bookingId}`)} />
             ) : null}

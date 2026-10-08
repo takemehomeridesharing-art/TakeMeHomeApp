@@ -183,6 +183,15 @@ function TicketView({ booking: b }: { booking: Booking }) {
             />
           ) : null}
           <ListRow icon="chatbubbles-outline" title={`Message ${otherFirst}`} subtitle="Chat stays in the app — no need to share numbers" onPress={() => router.push({ pathname: '/chat/[bookingId]', params: { bookingId: b.id } })} divider />
+          {b.counterpartPhone ? (
+            <ListRow
+              icon="call-outline"
+              title={`Call ${otherFirst}`}
+              subtitle={`${formatPhone(b.counterpartPhone)} · shared only while this ride is active`}
+              onPress={() => void Linking.openURL(`tel:${b.counterpartPhone}`)}
+              divider
+            />
+          ) : null}
           {b.status === 'completed' && b.myRating ? (
             <ListRow icon="star" iconColor="accentInk" title="You rated this trip" subtitle={`${b.myRating.stars} star${b.myRating.stars === 1 ? '' : 's'}${b.counterpartRated ? ` · ${otherFirst} rated you too` : ''}`} divider />
           ) : null}

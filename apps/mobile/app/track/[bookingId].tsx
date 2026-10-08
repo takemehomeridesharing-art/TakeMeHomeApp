@@ -127,9 +127,22 @@ function TrackView({ booking: b }: { booking: Booking }) {
           user={other}
           caption={asPassenger ? `${b.trip.vehicle.color} ${b.trip.vehicle.make} ${b.trip.vehicle.model} · ${b.trip.vehicle.plate}` : 'Your passenger'}
           right={
-            <Pressable onPress={chat} accessibilityRole="button" accessibilityLabel={`Message ${firstName(other.name)}`} style={({ pressed }) => [s.roundBtn, pressed ? s.pressed : null]} testID="track-chat">
-              <Icon name="chatbubble-ellipses" size={20} color="primary" />
-            </Pressable>
+            <View style={s.roundBtns}>
+              {b.counterpartPhone ? (
+                <Pressable
+                  onPress={() => void Linking.openURL(`tel:${b.counterpartPhone}`)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Call ${firstName(other.name)}`}
+                  style={({ pressed }) => [s.roundBtn, pressed ? s.pressed : null]}
+                  testID="track-call"
+                >
+                  <Icon name="call" size={20} color="primary" />
+                </Pressable>
+              ) : null}
+              <Pressable onPress={chat} accessibilityRole="button" accessibilityLabel={`Message ${firstName(other.name)}`} style={({ pressed }) => [s.roundBtn, pressed ? s.pressed : null]} testID="track-chat">
+                <Icon name="chatbubble-ellipses" size={20} color="primary" />
+              </Pressable>
+            </View>
           }
         />
       </Card>
@@ -218,6 +231,7 @@ const useStyles = makeStyles((t) => ({
   live: { backgroundColor: t.colors.success },
   cancelled: { backgroundColor: t.colors.ink3 },
   divider: { height: 1, backgroundColor: t.colors.line },
+  roundBtns: { flexDirection: 'row', gap: 8 },
   roundBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
   sosWrap: { alignItems: 'center', paddingVertical: 4, gap: 6 },
   sosCaption: { maxWidth: 300 },

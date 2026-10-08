@@ -12,7 +12,7 @@ Auth: `Authorization: Bearer <jwt>` (from `/auth/otp/verify`). Errors are
 | 401 | `UNAUTHORIZED`, `INVALID_OTP` |
 | 403 | `ACCOUNT_SUSPENDED` (any write by a suspended user), `WOMEN_ONLY`, `FORBIDDEN`, `BLOCKED` |
 | 404 | `NOT_FOUND` |
-| 409 | `INVALID_TRANSITION`, `DAILY_TRIP_LIMIT`, `NO_SEATS`, `ALREADY_REQUESTED`, `ALREADY_RATED`, `CONFLICT` |
+| 409 | `INVALID_TRANSITION`, `DAILY_TRIP_LIMIT`, `NO_SEATS`, `ALREADY_REQUESTED`, `ALREADY_RATED`, `TOO_EARLY` (starting a trip before `startableFrom`), `CONFLICT` |
 
 ## Auth & profile
 

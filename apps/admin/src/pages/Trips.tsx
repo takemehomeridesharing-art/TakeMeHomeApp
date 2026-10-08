@@ -15,6 +15,7 @@ function repeatLabel(days: string[]): string {
   const key = days.join(' ');
   if (key === 'MO TU WE TH FR') return 'weekdays';
   if (key === 'MO TU WE TH FR SA SU') return 'daily';
+  if (key === 'SA SU') return 'on weekends';
   return days.join(' ');
 }
 

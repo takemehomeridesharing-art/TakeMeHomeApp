@@ -29,6 +29,7 @@ export function recurringLabel(days: readonly Weekday[] | null | undefined): str
   const set = new Set(days);
   if (set.size === 5 && ['MO', 'TU', 'WE', 'TH', 'FR'].every((d) => set.has(d as Weekday))) return 'Mon–Fri';
   if (set.size === 7) return 'Every day';
+  if (set.size === 2 && set.has('SA') && set.has('SU')) return 'Sat & Sun';
   return days.map((d) => WEEKDAY_SHORT[d]).join(', ');
 }
 

@@ -112,6 +112,19 @@ describe('request → accept → pay state machine', () => {
     expect(asPassenger.body.joinRequests).toBeNull();
   });
 
+  it('shares phone numbers only between the driver and a paid passenger', async () => {
+    const booking = await prisma.booking.findFirstOrThrow({ where: { joinRequestId: requestId } });
+    const asPassenger = await api.get(`/bookings/${booking.id}`, tokens.eric);
+    expect(asPassenger.body.counterpartPhone).toBe(SEED_PHONES.claudine);
+    const asDriver = await api.get(`/bookings/${booking.id}`, tokens.claudine);
+    expect(asDriver.body.counterpartPhone).toBe(SEED_PHONES.eric);
+    const detail = await api.get(`/trips/${tripId()}`, tokens.claudine);
+    expect(detail.body.passengers[0].passengerPhone).toBe(SEED_PHONES.eric);
+    // Grace's request is unpaid: nothing about the trip exposes the driver's number to her.
+    const asGrace = await api.get(`/trips/${tripId()}`, tokens.grace);
+    expect(JSON.stringify(asGrace.body)).not.toContain(SEED_PHONES.claudine);
+  });
+
   it('starting the trip expires unanswered requests', async () => {
     const pendingGrace = await prisma.joinRequest.findFirstOrThrow({ where: { tripId: tripId(), passengerId: data.grace.id } });
     expect(pendingGrace.status).toBe('pending');
@@ -140,6 +153,9 @@ describe('request → accept → pay state machine', () => {
     const done = await api.post(`/trips/${tripId()}/complete`, tokens.claudine);
     expect(done.body.status).toBe('completed');
     expect(done.body.passengers[0].status).toBe('completed');
+    // Once the ride is over, numbers are no longer shared.
+    expect(done.body.passengers[0].passengerPhone).toBeNull();
+    expect((await api.get(`/bookings/${booking.id}`, tokens.eric)).body.counterpartPhone).toBeNull();
     expect((await api.post(`/bookings/${booking.id}/ratings`, tokens.eric, { stars: 5, tags: ['Punctual', 'Safe driving'] })).status).toBe(200);
     expect((await api.post(`/bookings/${booking.id}/ratings`, tokens.eric, { stars: 1 })).body.error).toBe('ALREADY_RATED');
     expect((await api.post(`/bookings/${booking.id}/ratings`, tokens.claudine, { stars: 4, tags: ['Friendly'] })).status).toBe(200);
