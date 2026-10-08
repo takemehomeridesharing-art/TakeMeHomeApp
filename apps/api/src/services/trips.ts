@@ -25,6 +25,7 @@ import type { TripStatus } from '@prisma/client';
 import type { z } from 'zod';
 import type { AuthUser } from '../auth';
 import { prisma, type Tx } from '../db';
+import { env } from '../env';
 import { badRequest, conflict, forbidden, notFound } from '../errors';
 import { realtime } from '../realtime';
 import { notify } from './notify';
@@ -32,6 +33,7 @@ import { providers } from '../providers';
 import {
   joinRequestInclude,
   occupiedSegments,
+  startableFrom,
   toTripDetail,
   toTripSummary,
   tripInclude,
@@ -288,6 +290,13 @@ const routeLabel = (stops: { place: { name: string } }[]) => `${stops[0]?.place.
 export async function startTrip(id: string, me: AuthUser): Promise<TripDetail> {
   const trip = await loadOwnTrip(id, me);
   assertTransition('trip', TRIP_TRANSITIONS, trip.status, 'in_progress');
+  const earliest = startableFrom(trip.departureTime);
+  if (earliest && Date.now() < earliest.getTime()) {
+    throw conflict(
+      `It's too early to start — you can start this trip from ${kigaliTime(earliest)} on ${DAY_LABEL(kigaliDayKey(earliest))}, ${env.tripStartWindowMinutes} minutes before departure.`,
+      'TOO_EARLY',
+    );
+  }
   const expired = await prisma.$transaction(async (tx) => {
     await tx.trip.update({ where: { id }, data: { status: 'in_progress', startedAt: new Date() } });
     // Requests nobody answered, and accepted-but-unpaid seats, lapse when the car leaves.
